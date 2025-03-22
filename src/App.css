@@ -96,6 +96,11 @@ header p {
   font-weight: bold;
 }
 
+.result-score {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
 .result-filename {
   font-style: italic;
 }
@@ -105,10 +110,35 @@ header p {
   flex-direction: column;
 }
 
+.result-context {
+  display: flex;
+  flex-direction: column;
+  color: #999;
+  margin: 0.5rem 0;
+  padding-left: 0.5rem;
+  border-left: 2px solid #eee;
+}
+
+.result-context-previous {
+  margin-bottom: 0.5rem;
+}
+
+.result-context-next {
+  margin-top: 0.5rem;
+}
+
 .result-speaker {
   font-weight: 600;
   color: var(--secondary-color);
   margin-bottom: 0.2rem;
+}
+
+.result-context .result-speaker {
+  color: #777;
+}
+
+.result-context .result-text {
+  color: #888;
 }
 
 .result-text {
