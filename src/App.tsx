@@ -6,20 +6,20 @@ import './App.css'
 import COMG8015171916 from './assets/transcripts/COMG8015171916.srt?raw'
 import COMG3990255774 from './assets/transcripts/COMG3990255774.srt?raw'
 
-// Define transcript entry interface
-interface TranscriptEntry {
-  id: number;
-  startTime: string;
-  endTime: string;
-  speaker: string;
-  text: string;
-  fullText: string; // Original line with speaker and text
-  fileName: string;
+// Import SearchResult component
+import SearchResult, { TranscriptEntry } from './components/SearchResult'
+
+// Define search result interface with score
+interface SearchResultWithContext {
+  result: TranscriptEntry;
+  score: number;
+  previousLine: TranscriptEntry | null;
+  nextLine: TranscriptEntry | null;
 }
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<TranscriptEntry[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResultWithContext[]>([]);
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -103,9 +103,30 @@ function App() {
       threshold: -10000 // Lower threshold allows more fuzzy matches
     });
     
-    // Map results to transcript entries
-    const searchResults = results.map(result => result.obj);
-    setSearchResults(searchResults);
+    // Map results to transcript entries with context and score
+    const searchResultsWithContext = results.map(result => {
+      const entry = result.obj;
+      const entryIndex = transcripts.findIndex(t => 
+        t.id === entry.id && t.fileName === entry.fileName
+      );
+      
+      // Get previous and next lines if they exist
+      const previousLine = entryIndex > 0 ? transcripts[entryIndex - 1] : null;
+      const nextLine = entryIndex < transcripts.length - 1 ? transcripts[entryIndex + 1] : null;
+      
+      // Calculate score - take the first score from the key scores array
+      // Higher scores are better in fuzzysort
+      const score = result.score || -10000;
+      
+      return {
+        result: entry,
+        score,
+        previousLine,
+        nextLine
+      };
+    });
+    
+    setSearchResults(searchResultsWithContext);
   }, [searchQuery, transcripts]);
 
   return (
@@ -130,17 +151,14 @@ function App() {
           <p className="loading-message">Loading transcripts...</p>
         ) : searchResults.length > 0 ? (
           <ul className="results-list">
-            {searchResults.map((result, index) => (
-              <li key={index} className="result-item">
-                <div className="result-header">
-                  <span className="result-timestamp">{result.startTime.split(',')[0]}</span>
-                  <span className="result-filename">{result.fileName}</span>
-                </div>
-                <div className="result-content">
-                  <span className="result-speaker">{result.speaker}</span>
-                  <span className="result-text">{result.text}</span>
-                </div>
-              </li>
+            {searchResults.map((resultWithContext, index) => (
+              <SearchResult 
+                key={index}
+                result={resultWithContext.result}
+                score={resultWithContext.score}
+                previousLine={resultWithContext.previousLine}
+                nextLine={resultWithContext.nextLine}
+              />
             ))}
           </ul>
         ) : searchQuery.trim() !== '' ? (
