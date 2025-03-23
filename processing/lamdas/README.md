@@ -1,0 +1,1 @@
+Note: We will develop at least 2 AWS Lamda Functions here. The directory structure may need to change. We'll start with local development, and eventually setup deployment from this repo, to AWS.
