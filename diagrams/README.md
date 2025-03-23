@@ -1,5 +1,8 @@
 # Listen Fair Play - AWS Architecture
 
+![AWS Architecture Diagram](aws-architecture.drawio.png)
+
+
 ## Components
 
 1. **EventBridge Scheduler**
