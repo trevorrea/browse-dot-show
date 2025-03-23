@@ -99,8 +99,8 @@ function App() {
     // Use fuzzysort to search through transcripts
     const results = fuzzysort.go(searchQuery, transcripts, {
       keys: ['text'],
-      limit: 20, // Limit to 20 results
-      threshold: -10000 // Lower threshold allows more fuzzy matches
+      limit: 100,
+      threshold: 0.75 // Lower threshold allows more fuzzy matches
     });
     
     // Map results to transcript entries with context and score
