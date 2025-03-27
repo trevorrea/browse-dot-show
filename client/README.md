@@ -21,4 +21,4 @@ pnpm client:build
 - Search functionality uses fuzzy matching with contextual results
 - Loads transcripts from assets in production or API in development
 
-See [main README](../README.md) for complete project documentation.
+See [main README](../README.md) for complete project documentation, including how to deploy.
