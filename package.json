@@ -4,15 +4,15 @@
   "private": true,
   "description": "A system for processing and analyzing podcast content",
   "scripts": {
-    "client:dev": "pnpm --filter listen-fair-play dev",
-    "client:test": "pnpm --filter listen-fair-play test",
-    "client:build": "pnpm --filter listen-fair-play build",
-    "run:rss:local": "pnpm --filter podcast-processing run run:rss:local",
-    "run:rss:dev-s3": "pnpm --filter podcast-processing run run:rss:dev-s3",
-    "run:whisper:local": "pnpm --filter podcast-processing run run:whisper:local",
-    "run:whisper:dev-s3": "pnpm --filter podcast-processing run run:whisper:dev-s3",
-    "build:processing": "pnpm --filter podcast-processing build",
-    "install:all": "pnpm install"
+    "client:dev": "pnpm --filter client dev",
+    "client:test": "pnpm --filter client test",
+    "client:build": "pnpm --filter client build",
+    "processing:run-rss:local": "pnpm --filter processing run run-rss:local",
+    "processing:run-rss:dev-s3": "pnpm --filter processing run run-rss:dev-s3",
+    "processing:run-whisper:local": "pnpm --filter processing run run-whisper:local",
+    "processing:run-whisper:dev-s3": "pnpm --filter processing run run-whisper:dev-s3",
+    "processing:build": "pnpm --filter processing build",
+    "processing:test": "pnpm --filter processing test"
   },
   "engines": {
     "node": ">=20.0.0",

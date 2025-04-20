@@ -38,10 +38,10 @@ pnpm install
 To run the RSS feed retrieval and audio download process:
 
 ```
-pnpm run:rss:local
+pnpm run-rss:local
 
 # to instead actually populate files to S3:
-pnpm run:rss:dev-s3
+pnpm run-rss:dev-s3
 ```
 
 This will:
@@ -54,10 +54,10 @@ This will:
 To run the audio file transcription process:
 
 ```
-pnpm run:whisper:local
+pnpm run-whisper:local
 
 # to instead actually populate files to S3:
-pnpm run:whisper:dev-s3
+pnpm run-whisper:dev-s3
 ```
 
 This will:
