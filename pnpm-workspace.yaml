@@ -1,3 +1,5 @@
 packages:
   - processing
   - client
+ignoredBuiltDependencies:
+  - esbuild
