@@ -1,6 +1,5 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { ServiceException } from '@smithy/smithy-client';
 import { getSignedUrl as createSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
 
