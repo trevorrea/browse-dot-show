@@ -3,7 +3,6 @@ import { fileURLToPath } from 'url';
 import OpenAI from 'openai';
 import ffmpeg from 'fluent-ffmpeg';
 import SrtParser from 'srt-parser-2';
-import { config } from '@dotenvx/dotenvx';
 import fs from 'fs-extra'; // Still needed for stream operations with ffmpeg
 import { 
   fileExists, 
@@ -13,13 +12,6 @@ import {
   createDirectory, 
   deleteFile 
 } from '../utils/s3/aws-s3-client.js';
-
-// Load environment variables from .env.local
-config({ path: path.join(process.cwd(), '.env.local') });
-
-// ES Module dirname equivalent
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Constants - S3 paths
 const AUDIO_DIR_PREFIX = 'audio/';
