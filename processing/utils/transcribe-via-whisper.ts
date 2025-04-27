@@ -197,11 +197,8 @@ async function transcribeWithLocalWhisperCpp(
   try {
     // Run whisper.cpp command
     const command = `cd "${whisperDir}" && "${whisperCliBin}" -m "${modelPath}" -f "${filePath}" ${formatFlag} -of "${tempOutputFile}"`;
-    
+
     const { stdout, stderr } = await execPromise(command);
-    console.log(stdout);
-    console.error(stderr);
-    console.log('tempOutputFile', tempOutputFile, tempOutputFileWithExtension);
     
     // Read the output file
     if (fs.existsSync(tempOutputFileWithExtension)) {
@@ -210,7 +207,9 @@ async function transcribeWithLocalWhisperCpp(
       fs.unlinkSync(tempOutputFileWithExtension);
       return transcription;
     } else {
-      throw new Error(`Output file not created: ${tempOutputFileWithExtension}`);
+      console.log('\n◻️ whisper.cpp, stdout:\n', stdout, '\n\n');
+      console.log('\n❌ whisper.cpp, stderr:\n', stderr, '\n\n');
+      throw new Error(`Output file not created: ${tempOutputFileWithExtension}. See above for more details.`);
     }
   } catch (error) {
     throw new Error(`Failed to run whisper.cpp: ${(error as Error).message}`);
