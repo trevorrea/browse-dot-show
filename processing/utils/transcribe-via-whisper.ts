@@ -3,12 +3,12 @@ import OpenAI from 'openai';
 import path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-// Node.js 18+ has native fetch
 
-// Setup details for local machine: 
-// * https://github.com/ggml-org/whisper.cpp?tab=readme-ov-file#quick-start
-// * https://github.com/ggml-org/whisper.cpp?tab=readme-ov-file#core-ml-support 
-
+/**
+ * `openai` has been confirmed to work
+ * `replicate` partially works, but the response format likely needs tweaking
+ * `local-whisper.cpp` has been confirmed to work - see README for setup details, to setup local whisper.cpp model
+ */
 export type WhisperApiProvider = 'openai' | 'replicate' | 'local-whisper.cpp';
 
 interface TranscribeOptions {
