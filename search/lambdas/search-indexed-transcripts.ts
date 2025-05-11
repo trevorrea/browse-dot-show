@@ -1,7 +1,3 @@
-// CURSOR-TODO: Switch this file to use SQLite via FlexSearch's SQLite adapter
-// https://github.com/nextapps-de/flexsearch/blob/master/doc/persistent-sqlite.md
-// On AWS Lambda, we'll save the SQLite database to S3 and load it on every lambda cold start
-
 import * as fs from 'fs/promises'; // For local DB file operations
 import { Document } from 'flexsearch';
 import sqlite3 from "sqlite3";
@@ -98,7 +94,6 @@ async function initializeFlexSearchIndex(): Promise<Document<any, any, any>> {
     return flexSearchIndex;
   }
 
-  // CURSOR-TODO: Can/should the DB initialization move to a /utils file, to be shared with the /search lambda?
   const sqlite3DB = new sqlite3.Database(LOCAL_DB_PATH);
 
   let tableNames: string[] = [];

@@ -1,7 +1,3 @@
-// CURSOR-TODO: Switch this file to use SQLite via FlexSearch's SQLite adapter
-// https://github.com/nextapps-de/flexsearch/blob/master/doc/persistent-sqlite.md
-// This function needs to create the index via the SQLite adapter, and then eventually save the index to S3
-
 import * as path from 'path';
 import * as fs from 'fs/promises'; // For local DB file operations
 import { Document } from 'flexsearch';
@@ -151,8 +147,6 @@ async function createAndExportFlexSearchIndex(allSearchEntries: SearchEntry[]): 
     }
   }
 
-  
-  // CURSOR-TODO: Can/should the DB initialization move to a /utils file, to be shared with the /search lambda?
   const sqlite3DB = new sqlite3.Database(LOCAL_DB_PATH);
   // Create FlexSearch Document index with SQLite adapter
   // The adapter will create/use the DB file at LOCAL_DB_PATH
