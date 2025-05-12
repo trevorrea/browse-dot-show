@@ -123,6 +123,22 @@ describe('convertSrtFileIntoSearchEntryArray', () => {
     expect(result).toEqual(expectedOutput);
   });
 
+  it('should correctly process a very long SRT file with minimal punctuation (Fixture Set 3)', () => {
+    const sampleSrtContent = fs.readFileSync(
+      path.join(__dirname, '__fixtures__/3--example-transcription.srt'),
+      'utf-8'
+    );
+    const expectedOutput = require('./__fixtures__/3--expected-search-entry.json');
+    const episodeDetails = require('./__fixtures__/3--example-episode-details.json');
+
+    const result = convertSrtFileIntoSearchEntryArray({
+      srtFileContent: sampleSrtContent,
+      episodeId: episodeDetails.id,
+      episodeTitle: episodeDetails.title
+    });
+    expect(result).toEqual(expectedOutput);
+  });
+
   it('should return an empty array if the SRT content is empty or whitespace', () => {
     const result = convertSrtFileIntoSearchEntryArray({
       srtFileContent: '   \n   \n  ',

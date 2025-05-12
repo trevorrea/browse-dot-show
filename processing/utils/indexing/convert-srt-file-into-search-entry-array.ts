@@ -31,6 +31,9 @@ const sentenceEndRegex = /[.!?]$/;
 // Minimum chunk duration in milliseconds
 const MIN_CHUNK_DURATION_MS = 15000;
 
+// Maximum chunk duration in milliseconds
+const MAX_CHUNK_DURATION_MS = 30000;
+
 export const convertSrtFileIntoSearchEntryArray = ({
     srtFileContent,
     episodeId,
@@ -100,24 +103,26 @@ export const convertSrtFileIntoSearchEntryArray = ({
         let finalizeChunk = false;
         const durationMet = currentDuration >= MIN_CHUNK_DURATION_MS;
         const hasPunctuation = sentenceEndRegex.test(line.text);
+        const maxDurationHit = currentDuration >= MAX_CHUNK_DURATION_MS;
 
-        log.debug(`  Checking Conditions: durationMet=${durationMet}, hasPunctuation=${hasPunctuation}, isLastLineOverall=${isLastLineOverall}`); // LOG: Conditions
-
-        if (durationMet) {
-             log.debug(`    Duration MET (${currentDuration} >= ${MIN_CHUNK_DURATION_MS})`); // LOG: Duration met
-            if (hasPunctuation) {
-                log.debug(`    Punctuation FOUND in line ${line.index}`); // LOG: Punctuation found
-                finalizeChunk = true;
-            } else {
-                log.debug(`    Punctuation NOT found in line ${line.index}`); // LOG: No punctuation
-            }
-        } else {
-             log.debug(`    Duration NOT met (${currentDuration} < ${MIN_CHUNK_DURATION_MS})`); // LOG: Duration not met
-        }
+        log.debug(`  Checking Conditions: durationMet=${durationMet}, hasPunctuation=${hasPunctuation}, maxDurationHit=${maxDurationHit}, isLastLineOverall=${isLastLineOverall}`); // LOG: Conditions
 
         if (isLastLineOverall) {
             log.debug(`    Is Last Line Overall - Forcing Finalize`); // LOG: Last line
             finalizeChunk = true;
+        } else if (maxDurationHit) {
+            log.debug(`    Max Duration MET (${currentDuration} >= ${MAX_CHUNK_DURATION_MS}) - Forcing Finalize`); // LOG: Max duration met
+            finalizeChunk = true;
+        } else if (durationMet) {
+             log.debug(`    Min Duration MET (${currentDuration} >= ${MIN_CHUNK_DURATION_MS})`); // LOG: Duration met
+            if (hasPunctuation) {
+                log.debug(`    Punctuation FOUND in line ${line.index}`); // LOG: Punctuation found
+                finalizeChunk = true;
+            } else {
+                log.debug(`    Punctuation NOT found in line ${line.index}, and Max Duration NOT met.`); // LOG: No punctuation
+            }
+        } else {
+             log.debug(`    Min Duration NOT met (${currentDuration} < ${MIN_CHUNK_DURATION_MS})`); // LOG: Duration not met
         }
 
         if (finalizeChunk && currentChunkLines.length > 0) {
