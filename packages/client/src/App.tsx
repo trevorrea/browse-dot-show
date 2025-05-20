@@ -105,6 +105,8 @@ function App() {
         {isLoading && !error ? (
           <p className="loading-message text-lg text-gray-600 text-center">Loading results...</p>
         ) : searchResults.length > 0 ? (
+          <>
+          <p className="text-sm mb-4 text-right"><em>Hits:</em> <span className="font-bold text-black">{searchResults.length}</span></p>
           <ul className="results-list space-y-6">
             {searchResults.map((result) => (
               <SearchResult
@@ -113,6 +115,7 @@ function App() {
               />
             ))}
           </ul>
+          </>
         ) : searchQuery.trim().length >= 2 && !error ? (
           <p className="no-results text-lg text-gray-600 text-center bg-gray-100 p-6 border-black border-2 shadow-[4px_4px_0px_rgba(0,0,0,1)] rounded-none">
             No results found for "{searchQuery}". Try a different term, perhaps something more pedantic?
