@@ -28,9 +28,23 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [episodeManifest, setEpisodeManifest] = useState<EpisodeManifest | null>(null);
+  const [scrolled, setScrolled] = useState(false);
 
   // TODO: Use this to hold off on rendering results as well
   const [_, setIsLoadingManifest] = useState(false);
+
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 10;
+      if (isScrolled !== scrolled) {
+        setScrolled(isScrolled);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [scrolled]);
 
   // Fetch episode manifest on component mount
   useEffect(() => {
@@ -103,10 +117,10 @@ function App() {
 
   return (
     <div className="app-container max-w-3xl mx-auto p-4 font-mono pt-28">
-      <header className="fixed top-0 left-0 right-0 z-10 bg-secondary border-b-2 border-black shadow-[0px_4px_0px_rgba(0,0,0,1)]">
-        <div className="max-w-3xl mx-auto p-6 text-center">
-          <h1 className="text-3xl font-bold mb-1 text-black">Listen, Fair Play</h1>
-          <p className="text-sm text-black italic">search the Football Clichés record books</p>
+      <header className={`fixed top-0 left-0 right-0 z-10 bg-secondary border-b-2 border-black shadow-[0px_4px_0px_rgba(0,0,0,1)] transition-all duration-300 ease-in-out ${scrolled ? 'py-2' : 'py-4'}`}>
+        <div className="max-w-3xl mx-auto px-6 text-right">
+          <h1 className={`font-bold text-black transition-all duration-200 ${scrolled ? 'text-2xl mb-0' : 'text-3xl mb-1'}`}>Listen, Fair Play</h1>
+          <p className={`text-sm text-black italic transition-all duration-200 ${scrolled ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'}`}>search the Football Clichés record books</p>
         </div>
       </header>
 

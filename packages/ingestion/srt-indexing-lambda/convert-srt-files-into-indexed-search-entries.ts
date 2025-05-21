@@ -226,6 +226,7 @@ export async function handler(event: { previousRunsCount?: number; forceReproces
   const index = await createDocumentIndex(sqlite3DB);
   log.info('FlexSearch index initialized.');
 
+  // CURSOR-TODO: This doesn't appear to be working on S3, only finding 'football-cliches' results (not the 'for-our-sins-' ones)
   // Step 1: List the "podcast directories" under the main transcripts prefix
   const podcastDirectoryPrefixes = await listFiles(TRANSCRIPTS_DIR_PREFIX);
   log.info(`[DEBUG] listFiles('${TRANSCRIPTS_DIR_PREFIX}') returned ${podcastDirectoryPrefixes.length} potential podcast directory prefixes.`);
