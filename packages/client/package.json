@@ -4,14 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
     "build": "tsc -b && vite build",
-    "temp-serve-s3-assets": "echo 'TODO: Improve command simplicity' && http-server ../../aws-local-dev/s3 --cors",
     "build-client:dev": "dotenvx run -f ../../.env.dev -- tsc -b && vite build",
     "build-client:prod": "dotenvx run -f ../../.env.prod -- tsc -b && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "_vite-dev": "vite",
+    "_serve-s3-assets": "echo 'TODO: Improve command simplicity' && http-server ../../aws-local-dev/s3 --cors"
   },
   "dependencies": {
     "@listen-fair-play/logging": "workspace:*",

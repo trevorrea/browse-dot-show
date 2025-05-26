@@ -21,9 +21,7 @@ import SearchResult from './components/SearchResult'
 const SEARCH_API_BASE_URL = import.meta.env.VITE_SEARCH_API_URL || 'http://localhost:3001';
 
 // Get the base URL for manifest files, fallback to local path for development
-// CURSOR-TODO: Fix this, and package.json#scripts.temp-serve-s3-assets
-const MANIFEST_BASE_URL = ''; // for deployment
-// const MANIFEST_BASE_URL = 'http://127.0.0.1:8080'; // for local development
+const MANIFEST_BASE_URL = import.meta.env.VITE_MANIFEST_BASE_URL || 'http://127.0.0.1:8080/';
 
 const SEARCH_LIMIT = 50;
 
@@ -63,7 +61,7 @@ function App() {
     const fetchEpisodeManifest = async () => {
       setIsLoadingManifest(true);
       try {
-        const manifestPath = `${MANIFEST_BASE_URL}/episode-manifest/full-episode-manifest.json`;
+        const manifestPath = `${MANIFEST_BASE_URL}episode-manifest/full-episode-manifest.json`;
         const response = await fetch(manifestPath);
         if (!response.ok) {
           throw new Error(`Failed to fetch episode manifest: ${response.status}`);
