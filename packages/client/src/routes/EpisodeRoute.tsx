@@ -20,9 +20,9 @@ async function getFullEpisodeSearchEntryFile(fileKey: string, podcastId: string)
     return data;
 }
 
-function FullEpisodeTranscript({ episodeData, originalSearchResult }: {
+function FullEpisodeTranscript({ episodeData, startTimeMs }: {
     episodeData: EpisodeInManifest;
-    originalSearchResult: ApiSearchResultHit | null;
+    startTimeMs: number | null;
 }) {
     const [searchEntries, setSearchEntries] = useState<SearchEntry[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -36,10 +36,10 @@ function FullEpisodeTranscript({ episodeData, originalSearchResult }: {
 
     // Find the target entry to highlight and scroll to
     useEffect(() => {
-        if (!isLoading && searchEntries.length > 0 && originalSearchResult) {
+        if (!isLoading && searchEntries.length > 0 && startTimeMs) {
             // Find the first entry with start time >= the requested start time
             const targetEntry = searchEntries.find(entry => 
-                entry.startTimeMs >= originalSearchResult.startTimeMs
+                entry.startTimeMs >= startTimeMs
             );
             
             if (targetEntry) {
@@ -49,11 +49,8 @@ function FullEpisodeTranscript({ episodeData, originalSearchResult }: {
                 const lastEntry = searchEntries[searchEntries.length - 1];
                 setTargetEntryId(lastEntry?.id || null);
             }
-        } else if (originalSearchResult && originalSearchResult.id && !originalSearchResult.id.startsWith('mock-')) {
-            // For real search results (not mock), use the original ID
-            setTargetEntryId(originalSearchResult.id);
         }
-    }, [isLoading, searchEntries, originalSearchResult]);
+    }, [isLoading, searchEntries, startTimeMs]);
 
     // Scroll to the target entry when it's identified
     useEffect(() => {
@@ -106,6 +103,7 @@ export default function EpisodeRoute() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const startTime = searchParams.get('start')
+  const startTimeMs = startTime ? Number(startTime) : null
   
   const [episodeData, setEpisodeData] = useState<EpisodeInManifest | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -153,23 +151,23 @@ export default function EpisodeRoute() {
     fetchEpisodeData()
   }, [eID])
 
-  // Create a mock search result for transcript highlighting (only if start time is provided)
-  const createMockSearchResult = (): ApiSearchResultHit | null => {
-    if (!episodeData || !startTime) return null
+  // // Create a mock search result for transcript highlighting (only if start time is provided)
+  // const createMockSearchResult = (): ApiSearchResultHit | null => {
+  //   if (!episodeData || !startTime) return null
 
-    const startTimeMs = parseInt(startTime, 10)
-    if (isNaN(startTimeMs)) return null
+  //   const startTimeMs = parseInt(startTime, 10)
+  //   if (isNaN(startTimeMs)) return null
 
-    // Create a mock search result that matches the expected structure
-    return {
-      id: `mock-${episodeData.sequentialId}-${startTimeMs}`,
-      text: '', // Will be populated when the full transcript loads
-      startTimeMs,
-      endTimeMs: startTimeMs + 1000, // Default 1 second duration
-      sequentialEpisodeIdAsString: eID!,
-      episodePublishedUnixTimestamp: new Date(episodeData.publishedAt).getTime()
-    }
-  }
+  //   // Create a mock search result that matches the expected structure
+  //   return {
+  //     id: `mock-${episodeData.sequentialId}-${startTimeMs}`,
+  //     text: '', // Will be populated when the full transcript loads
+  //     startTimeMs,
+  //     endTimeMs: startTimeMs + 1000, // Default 1 second duration
+  //     sequentialEpisodeIdAsString: eID!,
+  //     episodePublishedUnixTimestamp: new Date(episodeData.publishedAt).getTime()
+  //   }
+  // }
 
   // Handle sheet close - navigate back to home while preserving search query params
   const handleSheetClose = () => {
@@ -211,15 +209,19 @@ export default function EpisodeRoute() {
     )
   }
 
-  const mockSearchResult = createMockSearchResult()
-  const { title, summary, publishedAt, originalAudioURL } = episodeData
+  const { title, summary, publishedAt } = episodeData
   const formattedPublishedAt = publishedAt ? formatDate(publishedAt) : null
 
-  // Create audio URL with start time if available
-  const audioUrlToLoad = mockSearchResult 
-    ? `${originalAudioURL}#t=${formatMillisecondsToMMSS(mockSearchResult.startTimeMs)}`
-    : originalAudioURL
 
+  /**
+   * Create audio URL with start time if available
+   * Potential future enhancement: allow users to toggle between the original (RSS-feed-provided) .mp3,
+   * and the audio used to generate the transcript.
+   * For now: always load the .mp3 used to generate the transcript, to guarantee timestamps match up correctly.
+   */
+  const baseAudioUrl = `${S3_HOSTED_FILES_BASE_URL}audio/${episodeData.podcastId}/${episodeData.fileKey}.mp3`
+  const audioUrlToLoad = startTimeMs ? `${baseAudioUrl}#t=${formatMillisecondsToMMSS(startTimeMs)}` : baseAudioUrl
+  
   return (
     <Sheet open={true} onOpenChange={handleSheetClose}>
       <SheetContent className="font-mono overflow-y-auto w-[90%] md:w-140 lg:w-180 max-w-[90%] md:max-w-140 lg:max-w-180">
@@ -248,7 +250,7 @@ export default function EpisodeRoute() {
           <SheetDescription>
           </SheetDescription>
         </SheetHeader>
-        <FullEpisodeTranscript episodeData={episodeData} originalSearchResult={mockSearchResult} />
+        <FullEpisodeTranscript episodeData={episodeData} startTimeMs={startTimeMs} />
       </SheetContent>
     </Sheet>
   )
