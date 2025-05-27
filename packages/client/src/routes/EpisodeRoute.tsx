@@ -20,6 +20,12 @@ async function getFullEpisodeSearchEntryFile(fileKey: string, podcastId: string)
   return data;
 }
 
+/** 
+ * Buffer to allow for matching current audio playback time to a search entry
+ * required so that when clicking on a search entry, the correct entry is highlighted (rather than previous one)
+ */
+const ENTRY_MATCHING_THRESHOLD_MS = 500
+
 function FullEpisodeTranscript({
   episodeData,
   startTimeMs,
@@ -48,7 +54,7 @@ function FullEpisodeTranscript({
     if (!isLoading && searchEntries.length > 0 && startTimeMs && !urlBasedTargetEntryId) {
       // Find the first entry with start time >= the requested start time
       const targetEntry = searchEntries.find(entry =>
-        entry.startTimeMs >= startTimeMs
+        entry.startTimeMs >= (startTimeMs - ENTRY_MATCHING_THRESHOLD_MS)
       );
 
       if (targetEntry) {
@@ -66,7 +72,7 @@ function FullEpisodeTranscript({
     if (!isLoading && searchEntries.length > 0 && currentPlayingTimeMs !== null) {
       // Find the entry that contains the current playback time
       const playingEntry = searchEntries.find(entry =>
-        currentPlayingTimeMs >= entry.startTimeMs && currentPlayingTimeMs <= entry.endTimeMs
+        currentPlayingTimeMs >= (entry.startTimeMs - ENTRY_MATCHING_THRESHOLD_MS) && currentPlayingTimeMs <= (entry.endTimeMs - ENTRY_MATCHING_THRESHOLD_MS)
       );
 
       if (playingEntry && playingEntry.id !== currentPlayingEntryId) {
