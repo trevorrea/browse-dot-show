@@ -1,7 +1,7 @@
 import { useParams, useSearchParams, useNavigate } from 'react-router'
 import { useState, useEffect, useRef } from 'react'
 import { log } from '@listen-fair-play/logging'
-import { EpisodeInManifest, EpisodeManifest, ApiSearchResultHit } from '@listen-fair-play/types'
+import { EpisodeInManifest, EpisodeManifest } from '@listen-fair-play/types'
 import { S3_HOSTED_FILES_BASE_URL } from '../constants'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../components/ui/sheet'
 import { CaretSortIcon, MinusCircledIcon } from "@radix-ui/react-icons"
@@ -214,12 +214,12 @@ export default function EpisodeRoute() {
 
 
   /**
-   * Create audio URL with start time if available
    * Potential future enhancement: allow users to toggle between the original (RSS-feed-provided) .mp3,
    * and the audio used to generate the transcript.
    * For now: always load the .mp3 used to generate the transcript, to guarantee timestamps match up correctly.
    */
   const baseAudioUrl = `${S3_HOSTED_FILES_BASE_URL}audio/${episodeData.podcastId}/${episodeData.fileKey}.mp3`
+  /** Create audio URL with start time if available */
   const audioUrlToLoad = startTimeMs ? `${baseAudioUrl}#t=${formatMillisecondsToMMSS(startTimeMs)}` : baseAudioUrl
   
   return (
