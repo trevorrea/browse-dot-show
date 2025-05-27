@@ -34,7 +34,7 @@ export default function SearchInput({
         className="search-input w-full p-3 pl-10 border-black border-2 text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow-[4px_4px_0px_rgba(0,0,0,1)] rounded-none"
       />
       {isLoading && (
-        <div className="search-spinner absolute right-3 top-1/2 transform -translate-y-1/2 border-t-transparent border-solid animate-spin rounded-full border-blue-500 border-4 h-6 w-6"></div>
+        <div className="search-spinner absolute right-6 top-1/2 transform -translate-y-4/5 border-t-transparent border-solid animate-spin rounded-full border-blue-500 border-4 h-7 w-7"></div>
       )}
     </div>
   )

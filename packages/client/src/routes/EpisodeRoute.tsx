@@ -15,139 +15,139 @@ import { formatMillisecondsToMMSS } from '@/utils/time'
 import { SearchEntry } from '@listen-fair-play/types'
 
 async function getFullEpisodeSearchEntryFile(fileKey: string, podcastId: string): Promise<SearchEntry[]> {
-    const response = await fetch(`${S3_HOSTED_FILES_BASE_URL}search-entries/${podcastId}/${fileKey}.json`);
-    const data = await response.json();
-    return data;
+  const response = await fetch(`${S3_HOSTED_FILES_BASE_URL}search-entries/${podcastId}/${fileKey}.json`);
+  const data = await response.json();
+  return data;
 }
 
-function FullEpisodeTranscript({ 
-    episodeData, 
-    startTimeMs, 
-    currentPlayingTimeMs, 
-    onEntryClick 
+function FullEpisodeTranscript({
+  episodeData,
+  startTimeMs,
+  currentPlayingTimeMs,
+  onEntryClick
 }: {
-    episodeData: EpisodeInManifest;
-    startTimeMs: number | null;
-    currentPlayingTimeMs: number | null;
-    onEntryClick: (entry: SearchEntry) => void;
+  episodeData: EpisodeInManifest;
+  startTimeMs: number | null;
+  currentPlayingTimeMs: number | null;
+  onEntryClick: (entry: SearchEntry) => void;
 }) {
-    const [searchEntries, setSearchEntries] = useState<SearchEntry[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [urlBasedTargetEntryId, setUrlBasedTargetEntryId] = useState<string | null>(null);
-    const [currentPlayingEntryId, setCurrentPlayingEntryId] = useState<string | null>(null);
-    const urlBasedEntryRef = useRef<HTMLDivElement>(null);
-    const currentPlayingEntryRef = useRef<HTMLDivElement>(null);
+  const [searchEntries, setSearchEntries] = useState<SearchEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [urlBasedTargetEntryId, setUrlBasedTargetEntryId] = useState<string | null>(null);
+  const [currentPlayingEntryId, setCurrentPlayingEntryId] = useState<string | null>(null);
+  const urlBasedEntryRef = useRef<HTMLDivElement>(null);
+  const currentPlayingEntryRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        getFullEpisodeSearchEntryFile(episodeData.fileKey, episodeData.podcastId).then(setSearchEntries);
-        setIsLoading(false);
-    }, [episodeData]);
+  useEffect(() => {
+    getFullEpisodeSearchEntryFile(episodeData.fileKey, episodeData.podcastId).then(setSearchEntries);
+    setIsLoading(false);
+  }, [episodeData]);
 
-    // Find the URL-based target entry to highlight and scroll to (only on initial load)
-    useEffect(() => {
-        if (!isLoading && searchEntries.length > 0 && startTimeMs && !urlBasedTargetEntryId) {
-            // Find the first entry with start time >= the requested start time
-            const targetEntry = searchEntries.find(entry => 
-                entry.startTimeMs >= startTimeMs
-            );
-            
-            if (targetEntry) {
-                setUrlBasedTargetEntryId(targetEntry.id);
-            } else {
-                // If no entry found with start time >= requested time, use the last entry
-                const lastEntry = searchEntries[searchEntries.length - 1];
-                setUrlBasedTargetEntryId(lastEntry?.id || null);
-            }
-        }
-    }, [isLoading, searchEntries, startTimeMs, urlBasedTargetEntryId]);
+  // Find the URL-based target entry to highlight and scroll to (only on initial load)
+  useEffect(() => {
+    if (!isLoading && searchEntries.length > 0 && startTimeMs && !urlBasedTargetEntryId) {
+      // Find the first entry with start time >= the requested start time
+      const targetEntry = searchEntries.find(entry =>
+        entry.startTimeMs >= startTimeMs
+      );
 
-    // Find the currently playing entry based on audio playback time
-    useEffect(() => {
-        if (!isLoading && searchEntries.length > 0 && currentPlayingTimeMs !== null) {
-            // Find the entry that contains the current playback time
-            const playingEntry = searchEntries.find(entry => 
-                currentPlayingTimeMs >= entry.startTimeMs && currentPlayingTimeMs <= entry.endTimeMs
-            );
-            
-            if (playingEntry && playingEntry.id !== currentPlayingEntryId) {
-                setCurrentPlayingEntryId(playingEntry.id);
-            }
-        }
-    }, [isLoading, searchEntries, currentPlayingTimeMs, currentPlayingEntryId]);
-
-    // Scroll to the URL-based target entry when it's identified (initial load only)
-    useEffect(() => {
-        if (!isLoading && searchEntries.length > 0 && urlBasedTargetEntryId && urlBasedEntryRef.current) {
-            urlBasedEntryRef.current.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
-        }
-    }, [isLoading, searchEntries, urlBasedTargetEntryId]);
-
-    // Scroll to the currently playing entry when it changes (during playback)
-    useEffect(() => {
-        if (!isLoading && searchEntries.length > 0 && currentPlayingEntryId && currentPlayingEntryRef.current) {
-            // Only scroll if the currently playing entry is different from the URL-based target
-            if (currentPlayingEntryId !== urlBasedTargetEntryId) {
-                currentPlayingEntryRef.current.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-            }
-        }
-    }, [isLoading, searchEntries, currentPlayingEntryId, urlBasedTargetEntryId]);
-
-    function isUrlBasedTarget(entry: SearchEntry) {
-        return urlBasedTargetEntryId === entry.id;
+      if (targetEntry) {
+        setUrlBasedTargetEntryId(targetEntry.id);
+      } else {
+        // If no entry found with start time >= requested time, use the last entry
+        const lastEntry = searchEntries[searchEntries.length - 1];
+        setUrlBasedTargetEntryId(lastEntry?.id || null);
+      }
     }
+  }, [isLoading, searchEntries, startTimeMs, urlBasedTargetEntryId]);
 
-    function isCurrentlyPlaying(entry: SearchEntry) {
-        return currentPlayingEntryId === entry.id;
+  // Find the currently playing entry based on audio playback time
+  useEffect(() => {
+    if (!isLoading && searchEntries.length > 0 && currentPlayingTimeMs !== null) {
+      // Find the entry that contains the current playback time
+      const playingEntry = searchEntries.find(entry =>
+        currentPlayingTimeMs >= entry.startTimeMs && currentPlayingTimeMs <= entry.endTimeMs
+      );
+
+      if (playingEntry && playingEntry.id !== currentPlayingEntryId) {
+        setCurrentPlayingEntryId(playingEntry.id);
+      }
     }
+  }, [isLoading, searchEntries, currentPlayingTimeMs, currentPlayingEntryId]);
 
-    function getEntryClassName(entry: SearchEntry) {
-        const baseClass = 'py-2 px-4 cursor-pointer hover:bg-gray-50';
-        
-        if (isCurrentlyPlaying(entry)) {
-            return baseClass + ' bg-blue-100 border-l-4 border-blue-500 font-semibold';
-        } else if (isUrlBasedTarget(entry)) {
-            return baseClass + ' bg-yellow-100 border-l-4 border-yellow-500 font-bold';
-        } else {
-            return baseClass + ' text-muted-foreground';
-        }
+  // Scroll to the URL-based target entry when it's identified (initial load only)
+  useEffect(() => {
+    if (!isLoading && searchEntries.length > 0 && urlBasedTargetEntryId && urlBasedEntryRef.current) {
+      urlBasedEntryRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
     }
+  }, [isLoading, searchEntries, urlBasedTargetEntryId]);
 
-    function getEntryRef(entry: SearchEntry) {
-        if (isCurrentlyPlaying(entry)) {
-            return currentPlayingEntryRef;
-        } else if (isUrlBasedTarget(entry)) {
-            return urlBasedEntryRef;
-        }
-        return null;
+  // Scroll to the currently playing entry when it changes (during playback)
+  useEffect(() => {
+    if (!isLoading && searchEntries.length > 0 && currentPlayingEntryId && currentPlayingEntryRef.current) {
+      // Only scroll if the currently playing entry is different from the URL-based target
+      if (currentPlayingEntryId !== urlBasedTargetEntryId) {
+        currentPlayingEntryRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
     }
+  }, [isLoading, searchEntries, currentPlayingEntryId, urlBasedTargetEntryId]);
 
-    return (
+  function isUrlBasedTarget(entry: SearchEntry) {
+    return urlBasedTargetEntryId === entry.id;
+  }
+
+  function isCurrentlyPlaying(entry: SearchEntry) {
+    return currentPlayingEntryId === entry.id;
+  }
+
+  function getEntryClassName(entry: SearchEntry) {
+    const baseClass = 'py-2 px-4 cursor-pointer hover:bg-gray-50';
+
+    if (isUrlBasedTarget(entry)) {
+      return baseClass + ' bg-yellow-100 border-l-4 border-yellow-500 font-bold';
+    } else if (isCurrentlyPlaying(entry)) {
+      return baseClass + ' bg-blue-100 border-l-4 border-blue-500 font-semibold';
+    } else {
+      return baseClass + ' text-muted-foreground';
+    }
+  }
+
+  function getEntryRef(entry: SearchEntry) {
+    if (isCurrentlyPlaying(entry)) {
+      return currentPlayingEntryRef;
+    } else if (isUrlBasedTarget(entry)) {
+      return urlBasedEntryRef;
+    }
+    return null;
+  }
+
+  return (
     <div>
-        {isLoading && null}
-        {!isLoading && searchEntries.length === 0 && <p>Episode transcript not available. Please try refreshing the page.</p>}
-        {!isLoading && searchEntries.length > 0 && (
-            <div>
-                {searchEntries.map((entry) => (
-                    <div 
-                        key={entry.id} 
-                        ref={getEntryRef(entry)}
-                        className={getEntryClassName(entry)}
-                        onClick={() => onEntryClick(entry)}
-                    >
-                        <Badge variant="outline" className="my-1"><em>{formatMillisecondsToMMSS(entry.startTimeMs)} - {formatMillisecondsToMMSS(entry.endTimeMs)}</em></Badge>
-                        <p>{entry.text}</p>
-                    </div>
-                ))  }
+      {isLoading && null}
+      {!isLoading && searchEntries.length === 0 && <p>Episode transcript not available. Please try refreshing the page.</p>}
+      {!isLoading && searchEntries.length > 0 && (
+        <div>
+          {searchEntries.map((entry) => (
+            <div
+              key={entry.id}
+              ref={getEntryRef(entry)}
+              className={getEntryClassName(entry)}
+              onClick={() => onEntryClick(entry)}
+            >
+              <Badge variant="outline" className="my-1"><em>{formatMillisecondsToMMSS(entry.startTimeMs)} - {formatMillisecondsToMMSS(entry.endTimeMs)}</em></Badge>
+              <p>{entry.text}</p>
             </div>
-        )}
+          ))}
+        </div>
+      )}
     </div>
-    );
+  );
 }
 
 /**
@@ -166,14 +166,14 @@ export default function EpisodeRoute() {
   const navigate = useNavigate()
   const startTime = searchParams.get('start')
   const startTimeMs = startTime ? Number(startTime) : null
-  
+
   const [episodeData, setEpisodeData] = useState<EpisodeInManifest | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(false)
   const [currentPlayingTimeMs, setCurrentPlayingTimeMs] = useState<number | null>(null)
   const [hasUserInteracted, setHasUserInteracted] = useState(false)
-  
+
   const audioPlayerRef = useRef<AudioPlayerRef>(null)
 
   useEffect(() => {
@@ -191,20 +191,20 @@ export default function EpisodeRoute() {
         // Fetch episode manifest to find the episode by sequential ID
         const manifestPath = `${S3_HOSTED_FILES_BASE_URL}episode-manifest/full-episode-manifest.json`
         const response = await fetch(manifestPath)
-        
+
         if (!response.ok) {
           throw new Error(`Failed to fetch episode manifest: ${response.status}`)
         }
-        
+
         const manifestData: EpisodeManifest = await response.json()
-        
+
         // Find episode by sequential ID (converted to number for comparison)
         const episode = manifestData.episodes.find(ep => ep.sequentialId === parseInt(eID, 10))
-        
+
         if (!episode) {
           throw new Error(`Episode with ID ${eID} not found`)
         }
-        
+
         setEpisodeData(episode)
       } catch (e: any) {
         log.error('[EpisodeRoute.tsx] Failed to fetch episode data:', e)
@@ -224,7 +224,7 @@ export default function EpisodeRoute() {
     const currentParams = new URLSearchParams(searchParams)
     // Remove episode-specific params
     currentParams.delete('start')
-    
+
     // Navigate back to home with preserved search params
     const queryString = currentParams.toString()
     navigate(queryString ? `/?${queryString}` : '/')
@@ -292,7 +292,7 @@ export default function EpisodeRoute() {
   const baseAudioUrl = `${S3_HOSTED_FILES_BASE_URL}audio/${episodeData.podcastId}/${episodeData.fileKey}.mp3`
   /** Create audio URL with start time if available */
   const audioUrlToLoad = startTimeMs ? `${baseAudioUrl}#t=${formatMillisecondsToMMSS(startTimeMs)}` : baseAudioUrl
-  
+
   return (
     <Sheet open={true} onOpenChange={handleSheetClose}>
       <SheetContent className="font-mono overflow-y-auto w-[90%] md:w-140 lg:w-180 max-w-[90%] md:max-w-140 lg:max-w-180">
@@ -324,9 +324,9 @@ export default function EpisodeRoute() {
           <SheetDescription>
           </SheetDescription>
         </SheetHeader>
-        <FullEpisodeTranscript 
-          episodeData={episodeData} 
-          startTimeMs={startTimeMs} 
+        <FullEpisodeTranscript
+          episodeData={episodeData}
+          startTimeMs={startTimeMs}
           currentPlayingTimeMs={hasUserInteracted ? currentPlayingTimeMs : null}
           onEntryClick={handleEntryClick}
         />
