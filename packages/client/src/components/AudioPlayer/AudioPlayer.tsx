@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import AudioPlayerH5, { RHAP_UI } from 'react-h5-audio-player';
 import { PlayIcon, PauseIcon } from '@radix-ui/react-icons';
 import { Button } from '../ui/button';
@@ -27,15 +27,32 @@ const PauseButton = (
 
 interface AudioPlayerProps {
   src: string;
+  onListen: (currentTimeMs: number) => void;
+  onPlay?: () => void;
   className?: string;
 }
 
-const AudioPlayer: React.FC<AudioPlayerProps> = ({
+export interface AudioPlayerRef {
+  seekTo: (timeMs: number) => void;
+}
+
+const AudioPlayer = forwardRef<AudioPlayerRef, AudioPlayerProps>(({
   src,
-  className
-}) => {
+  className,
+  onListen,
+  onPlay
+}, ref) => {
   const [isLoading, setIsLoading] = useState(false);
   const playerRef = useRef<AudioPlayerH5>(null);
+
+  // Expose seekTo method to parent component
+  useImperativeHandle(ref, () => ({
+    seekTo: (timeMs: number) => {
+      if (playerRef.current?.audio?.current) {
+        playerRef.current.audio.current.currentTime = timeMs / 1000; // Convert ms to seconds
+      }
+    }
+  }));
 
   const handleLoadStart = () => {
     setIsLoading(true);
@@ -47,6 +64,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   const handleError = () => {
     setIsLoading(false);
+  };
+
+  const handleListen = (event: Event) => {
+    const audio = event.target as HTMLAudioElement;
+    const currentTimeMs = audio.currentTime * 1000; // Convert seconds to milliseconds
+    onListen(currentTimeMs);
+  };
+
+  const handlePlay = () => {
+    if (onPlay) {
+      onPlay();
+    }
   };
 
   return (
@@ -65,6 +94,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         onLoadStart={handleLoadStart}
         onCanPlay={handleCanPlay}
         onError={handleError}
+        onPlay={handlePlay}
+        onListen={handleListen}
         customVolumeControls={[]}
         customAdditionalControls={[]}
         customIcons={{
@@ -84,6 +115,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       />
     </div>
   );
-};
+});
+
+AudioPlayer.displayName = 'AudioPlayer';
 
 export default AudioPlayer; 
