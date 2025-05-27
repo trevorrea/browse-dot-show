@@ -4,14 +4,24 @@ interface SearchInputProps {
   value: string
   onChange: (value: string) => void
   isLoading: boolean
-  placeholder?: string
 }
+
+const PLACEHOLDER_OPTIONS = [
+  "gets the shot away",
+  "no disrespect to egg",
+  "corridor of uncertainty",
+  "football clubbing",
+  "come what February"
+]
+
+// Do this outside of React component, so that we always get the same placeholder for each page load
+const placeholderBase = PLACEHOLDER_OPTIONS[Math.floor(Math.random() * PLACEHOLDER_OPTIONS.length)]
+const placeholder = `e.g. "${placeholderBase}"`
 
 export default function SearchInput({ 
   value, 
   onChange, 
-  isLoading, 
-  placeholder = "Search transcripts (min. 2 characters)..." 
+  isLoading,
 }: SearchInputProps) {
   return (
     <div className="search-input-container mx-[-16px] pt-4 pb-8 px-[16px] sticky top-13 flex items-center bg-gradient-to-b from-white from-85% to-transparent z-10">
