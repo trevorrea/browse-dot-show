@@ -4,11 +4,6 @@ import EpisodeRoute from './routes/EpisodeRoute'
 
 /**
  * Main App component that sets up routing configuration.
- * 
- * Routes:
- * - `/` - Home page with search functionality
- * - `/episode/:eID` - Same home page + EpisodeDetailsSheet overlay
- * - `/episode` (without eID) - Redirects to `/` (invalid route)
  */
 function App() {
   return (
