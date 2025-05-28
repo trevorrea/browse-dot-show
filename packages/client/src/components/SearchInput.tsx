@@ -52,7 +52,7 @@ export default function SearchInput({
   const buttonClassName = showBigSearchInput ? 'h-16 w-16' : 'h-12 w-12';
 
   return (
-    <div className={`search-input-container mx-[-16px] pb-8 px-[16px] sticky top-13.5 flex flex-col items-center bg-gradient-to-b from-white from-85% to-transparent z-10 transition-[padding] duration-500 ${containerClassName}`}>
+    <div className={`text-sm search-input-container mx-[-16px] pb-8 px-[16px] sticky top-13.5 flex flex-col items-center bg-gradient-to-b from-white from-85% to-transparent z-10 transition-[padding] duration-500 ${containerClassName}`}>
       <div className="relative w-full flex gap-2">
         <input
           type="text"
