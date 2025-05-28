@@ -52,7 +52,7 @@ export default function SearchInput({
   const buttonClassName = showBigSearchInput ? 'h-16 w-16' : 'h-12 w-12';
 
   return (
-    <div className={`text-sm search-input-container mx-[-16px] pb-8 px-[16px] sticky top-13.5 flex flex-col items-center bg-gradient-to-b from-white from-85% to-transparent z-10 transition-[padding] duration-500 ${containerClassName}`}>
+    <div className={`search-input-container mx-[-16px] pb-8 px-[16px] sticky top-13.5 flex flex-col items-center bg-gradient-to-b from-white from-85% to-transparent z-10 transition-[padding] duration-500 ${containerClassName}`}>
       <div className="relative w-full flex gap-2">
         <input
           type="text"
@@ -60,7 +60,7 @@ export default function SearchInput({
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          className={`search-input flex-1 py-2 px-4 border-black border-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow-[4px_4px_0px_rgba(0,0,0,1)] rounded-none ${inputClassName}`}
+          className={`text-[16px]search-input flex-1 py-2 px-4 border-black border-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow-[4px_4px_0px_rgba(0,0,0,1)] rounded-none ${inputClassName}`}
         />
         <Button
           onClick={handleSearchClick}
