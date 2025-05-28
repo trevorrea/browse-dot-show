@@ -1,160 +1,100 @@
 import { useParams, useSearchParams, useNavigate } from 'react-router'
 import { useState, useEffect, useRef } from 'react'
-import { log } from '@listen-fair-play/logging'
 import { EpisodeInManifest, EpisodeManifest } from '@listen-fair-play/types'
-import { S3_HOSTED_FILES_BASE_URL } from '../constants'
+import { CaretSortIcon, MinusCircledIcon, Share1Icon, Share2Icon, Cross2Icon, CopyIcon, CheckCircledIcon } from "@radix-ui/react-icons"
+
+import { log } from '@listen-fair-play/logging'
+import { SearchEntry } from '@listen-fair-play/types'
+
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../components/ui/sheet'
-import { CaretSortIcon, MinusCircledIcon } from "@radix-ui/react-icons"
 import { Badge } from "../components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover"
+import { Button } from "../components/ui/button"
 import AudioPlayer, { AudioPlayerRef } from "../components/AudioPlayer/AudioPlayer"
+import FullEpisodeTranscript from '../components/FullEpisodeTranscript'
+import { S3_HOSTED_FILES_BASE_URL } from '../constants'
 import { formatDate } from '@/utils/date'
 import { formatMillisecondsToMMSS } from '@/utils/time'
 
-// Import the FullEpisodeTranscript component from EpisodeDetailsSheet
-import { SearchEntry } from '@listen-fair-play/types'
+// Add a simple check for whether this is iOS or Mac, vs anything else:
+const isIOSOrMac = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
-async function getFullEpisodeSearchEntryFile(fileKey: string, podcastId: string): Promise<SearchEntry[]> {
-  const response = await fetch(`${S3_HOSTED_FILES_BASE_URL}search-entries/${podcastId}/${fileKey}.json`);
-  const data = await response.json();
-  return data;
+interface EpisodeDetailsHeaderControlsProps {
+  formattedPublishedAt: string | null,
+  summary: string | null,
+  isDescriptionOpen: boolean,
+  setIsDescriptionOpen: (isOpen: boolean) => void,
+  handleCloseButton: () => void
 }
 
-/** 
- * Buffer to allow for matching current audio playback time to a search entry
- * required so that when clicking on a search entry, the correct entry is highlighted (rather than previous one)
- */
-const ENTRY_MATCHING_THRESHOLD_MS = 500
+function EpisodeDetailsHeaderControls({
+  formattedPublishedAt,
+  summary,
+  isDescriptionOpen,
+  setIsDescriptionOpen,
+  handleCloseButton
+}: EpisodeDetailsHeaderControlsProps) {
+  const [isShareOpen, setIsShareOpen] = useState(false)
+  const [copySuccess, setCopySuccess] = useState(false)
 
-function FullEpisodeTranscript({
-  episodeData,
-  startTimeMs,
-  currentPlayingTimeMs,
-  onEntryClick
-}: {
-  episodeData: EpisodeInManifest;
-  startTimeMs: number | null;
-  currentPlayingTimeMs: number | null;
-  onEntryClick: (entry: SearchEntry) => void;
-}) {
-  const [searchEntries, setSearchEntries] = useState<SearchEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [urlBasedTargetEntryId, setUrlBasedTargetEntryId] = useState<string | null>(null);
-  const [currentPlayingEntryId, setCurrentPlayingEntryId] = useState<string | null>(null);
-  const urlBasedEntryRef = useRef<HTMLDivElement>(null);
-  const currentPlayingEntryRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    getFullEpisodeSearchEntryFile(episodeData.fileKey, episodeData.podcastId).then(setSearchEntries);
-    setIsLoading(false);
-  }, [episodeData]);
-
-  // Find the URL-based target entry to highlight and scroll to (only on initial load)
-  useEffect(() => {
-    if (!isLoading && searchEntries.length > 0 && startTimeMs && !urlBasedTargetEntryId) {
-      // Find the first entry with start time >= the requested start time
-      const targetEntry = searchEntries.find(entry =>
-        entry.startTimeMs >= (startTimeMs - ENTRY_MATCHING_THRESHOLD_MS)
-      );
-
-      if (targetEntry) {
-        setUrlBasedTargetEntryId(targetEntry.id);
-      } else {
-        // If no entry found with start time >= requested time, use the last entry
-        const lastEntry = searchEntries[searchEntries.length - 1];
-        setUrlBasedTargetEntryId(lastEntry?.id || null);
-      }
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopySuccess(true)
+      // Close the popover after a brief delay to show the success message
+      setTimeout(() => {
+        setIsShareOpen(false)
+        setCopySuccess(false)
+      }, 1000)
+    } catch (err) {
+      console.error('Failed to copy URL:', err)
     }
-  }, [isLoading, searchEntries, startTimeMs, urlBasedTargetEntryId]);
-
-  // Find the currently playing entry based on audio playback time
-  useEffect(() => {
-    if (!isLoading && searchEntries.length > 0 && currentPlayingTimeMs !== null) {
-      // Find the entry that contains the current playback time
-      const playingEntry = searchEntries.find(entry =>
-        currentPlayingTimeMs >= (entry.startTimeMs - ENTRY_MATCHING_THRESHOLD_MS) && currentPlayingTimeMs <= (entry.endTimeMs - ENTRY_MATCHING_THRESHOLD_MS)
-      );
-
-      if (playingEntry && playingEntry.id !== currentPlayingEntryId) {
-        setCurrentPlayingEntryId(playingEntry.id);
-      }
-    }
-  }, [isLoading, searchEntries, currentPlayingTimeMs, currentPlayingEntryId]);
-
-  // Scroll to the URL-based target entry when it's identified (initial load only)
-  useEffect(() => {
-    if (!isLoading && searchEntries.length > 0 && urlBasedTargetEntryId && urlBasedEntryRef.current) {
-      urlBasedEntryRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
-    }
-  }, [isLoading, searchEntries, urlBasedTargetEntryId]);
-
-  // Scroll to the currently playing entry when it changes (during playback)
-  useEffect(() => {
-    if (!isLoading && searchEntries.length > 0 && currentPlayingEntryId && currentPlayingEntryRef.current) {
-      // Only scroll if the currently playing entry is different from the URL-based target
-      if (currentPlayingEntryId !== urlBasedTargetEntryId) {
-        currentPlayingEntryRef.current.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        });
-      }
-    }
-  }, [isLoading, searchEntries, currentPlayingEntryId, urlBasedTargetEntryId]);
-
-  function isUrlBasedTarget(entry: SearchEntry) {
-    return urlBasedTargetEntryId === entry.id;
-  }
-
-  function isCurrentlyPlaying(entry: SearchEntry) {
-    return currentPlayingEntryId === entry.id;
-  }
-
-  function getEntryClassName(entry: SearchEntry) {
-    const baseClass = 'py-2 px-4';
-
-    if (isUrlBasedTarget(entry)) {
-      return baseClass + ' bg-yellow-100 border-l-4 border-yellow-500 font-bold';
-    } else if (isCurrentlyPlaying(entry)) {
-      return baseClass + ' bg-blue-100 border-l-4 border-blue-500 font-semibold';
-    } else {
-      return baseClass + ' text-muted-foreground hover:bg-gray-100 cursor-pointer';
-    }
-  }
-
-  function getEntryRef(entry: SearchEntry) {
-    if (isCurrentlyPlaying(entry)) {
-      return currentPlayingEntryRef;
-    } else if (isUrlBasedTarget(entry)) {
-      return urlBasedEntryRef;
-    }
-    return null;
   }
 
   return (
-    <div>
-      {isLoading && null}
-      {!isLoading && searchEntries.length === 0 && <p>Episode transcript not available. Please try refreshing the page.</p>}
-      {!isLoading && searchEntries.length > 0 && (
-        <div>
-          {searchEntries.map((entry) => (
-            <div
-              key={entry.id}
-              ref={getEntryRef(entry)}
-              className={getEntryClassName(entry)}
-              onClick={() => onEntryClick(entry)}
-            >
-              <Badge variant="outline" className="my-1"><em>{formatMillisecondsToMMSS(entry.startTimeMs)} - {formatMillisecondsToMMSS(entry.endTimeMs)}</em></Badge>
-              <p>{entry.text}</p>
+    <div className="flex flex-row gap-2 items-center">
+      <Badge variant="destructive">{formattedPublishedAt}</Badge>
+      <Popover onOpenChange={setIsDescriptionOpen}>
+        <PopoverTrigger className="cursor-pointer -mt-1">
+          <Badge variant="outline" className="hover:bg-accent hover:text-accent-foreground">
+            Summary
+            {isDescriptionOpen ? <MinusCircledIcon /> : <CaretSortIcon />}
+          </Badge>
+        </PopoverTrigger>
+        <PopoverContent align="center" side="bottom" className="text-sm"><em>{summary}</em></PopoverContent>
+      </Popover>
+      <Popover open={isShareOpen} onOpenChange={setIsShareOpen}>
+        <PopoverTrigger>
+          <Button variant="link" size="icon" className="cursor-pointer">{isIOSOrMac ? <Share2Icon className="size-6" /> : <Share1Icon className="size-6" />}</Button>
+        </PopoverTrigger>
+        <PopoverContent align="center" side="bottom" className="text-sm w-80 p-2">
+          {copySuccess ? (
+            <div className="text-green-600 font-bold flex items-center gap-2 justify-center"><CheckCircledIcon /> Share link copied!</div>
+          ) : (
+            <div className="flex gap-2 items-center">
+              <span className="overflow-scroll whitespace-nowrap">{window.location.href}</span>
+              <Button onClick={handleCopyUrl} variant="default" size="icon" className="cursor-pointer">
+                <CopyIcon className="size-4" />
+              </Button>
             </div>
-          ))}
-        </div>
-      )}
+          )}
+        </PopoverContent>
+      </Popover>
+      <Button variant="ghost" size="icon" onClick={handleCloseButton} className="self-end ml-auto cursor-pointer"><Cross2Icon className="size-6" /></Button>
     </div>
-  );
+  )
 }
+
+// Need to use JS, because the Sheet component doesn't provide a way to hide the built-in close button.
+// We need to hide it, because we provide our own that stays sticky to the top of the sheet.
+function hideSheetBuiltInCloseButton() {
+  const sheetBuiltInCloseButton: HTMLButtonElement | null = document.querySelector('div[role="dialog"] > button.ring-offset-background');
+
+  if (sheetBuiltInCloseButton) {
+    sheetBuiltInCloseButton.style.display = 'none'
+  }
+}
+
 
 /**
  * EpisodeRoute component that handles the /episode/:eID route.
@@ -223,17 +163,24 @@ export default function EpisodeRoute() {
     fetchEpisodeData()
   }, [eID])
 
-
+  useEffect(() => {
+    hideSheetBuiltInCloseButton()
+  }, [])
 
   // Handle sheet close - navigate back to home while preserving search query params
-  const handleSheetClose = () => {
-    const currentParams = new URLSearchParams(searchParams)
-    // Remove episode-specific params
-    currentParams.delete('start')
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      const currentParams = new URLSearchParams(searchParams)
+      // Remove episode-specific params
+      currentParams.delete('start')
 
-    // Navigate back to home with preserved search params
-    const queryString = currentParams.toString()
-    navigate(queryString ? `/?${queryString}` : '/')
+      // Navigate back to home with preserved search params
+      const queryString = currentParams.toString()
+      navigate(queryString ? `/?${queryString}` : '/')
+    }
+  }
+  const handleCloseButton = () => {
+    handleOpenChange(false)
   }
 
   const handleListen = (currentTimeMs: number) => {
@@ -260,7 +207,7 @@ export default function EpisodeRoute() {
   // Show loading state
   if (isLoading) {
     return (
-      <Sheet open={true} onOpenChange={handleSheetClose}>
+      <Sheet open={true} onOpenChange={handleOpenChange}>
         <SheetContent className="font-mono overflow-y-auto w-[350px]">
           <div className="flex items-center justify-center h-32">
             <p>Loading episode...</p>
@@ -273,7 +220,7 @@ export default function EpisodeRoute() {
   // Show error state
   if (error || !episodeData) {
     return (
-      <Sheet open={true} onOpenChange={handleSheetClose}>
+      <Sheet open={true} onOpenChange={handleOpenChange}>
         <SheetContent className="font-mono overflow-y-auto w-[350px]">
           <div className="flex items-center justify-center h-32">
             <div className="text-center">
@@ -300,21 +247,16 @@ export default function EpisodeRoute() {
   const audioUrlToLoad = startTimeMs ? `${baseAudioUrl}#t=${formatMillisecondsToMMSS(startTimeMs)}` : baseAudioUrl
 
   return (
-    <Sheet open={true} onOpenChange={handleSheetClose}>
+    <Sheet open={true} onOpenChange={handleOpenChange}>
       <SheetContent className="font-mono overflow-y-auto w-[90%] md:w-140 lg:w-180 max-w-[90%] md:max-w-140 lg:max-w-180">
         <SheetHeader className="sticky top-0 bg-gradient-to-b from-white from-85% to-transparent pb-4">
-          <div className="flex flex-row gap-2">
-            <Badge variant="destructive">{formattedPublishedAt}</Badge>
-            <Popover onOpenChange={setIsDescriptionOpen}>
-              <PopoverTrigger className="relative cursor-pointer">
-                <Badge variant="outline" className="absolute top-0 left-0 hover:bg-accent hover:text-accent-foreground">
-                  Summary
-                  {isDescriptionOpen ? <MinusCircledIcon /> : <CaretSortIcon />}
-                </Badge>
-              </PopoverTrigger>
-              <PopoverContent align="center" side="bottom" className="text-sm"><em>{summary}</em></PopoverContent>
-            </Popover>
-          </div>
+          <EpisodeDetailsHeaderControls
+            formattedPublishedAt={formattedPublishedAt}
+            summary={summary}
+            isDescriptionOpen={isDescriptionOpen}
+            setIsDescriptionOpen={setIsDescriptionOpen}
+            handleCloseButton={handleCloseButton}
+          />
           <SheetTitle className="text-lg/6 font-semibold mt-2 mb-2">
             {title}
           </SheetTitle>
