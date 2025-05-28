@@ -64,9 +64,6 @@ aws sso login --profile YourProfileName
 # Deploy to development environment
 ./scripts/deploy/deploy.sh dev
 
-# Deploy to production environment
-./scripts/deploy/deploy.sh prod
-
 # Destroy an environment (use with caution!)
 ./scripts/deploy/destroy.sh dev
 ```
