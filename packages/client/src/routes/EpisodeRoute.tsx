@@ -44,12 +44,16 @@ function EpisodeDetailsHeaderControls({
       // Close the popover after a brief delay to show the success message
       setTimeout(() => {
         setIsShareOpen(false)
-        setCopySuccess(false)
       }, 1000)
+      setTimeout(() => {
+        setCopySuccess(false)
+      }, 1200)
     } catch (err) {
       console.error('Failed to copy URL:', err)
     }
   }
+
+  const displayedUrl = location.href.replace(/https?:\/\//i, "")
 
   return (
     <div className="flex flex-row gap-2 items-center">
@@ -67,12 +71,12 @@ function EpisodeDetailsHeaderControls({
         <PopoverTrigger>
           <Button variant="link" size="icon" className="cursor-pointer">{isIOSOrMac ? <Share2Icon className="size-6" /> : <Share1Icon className="size-6" />}</Button>
         </PopoverTrigger>
-        <PopoverContent align="center" side="bottom" className="text-sm w-80 p-2">
+        <PopoverContent align="center" side="bottom" className="text-xs w-70 p-2 mr-4">
           {copySuccess ? (
             <div className="text-green-600 font-bold flex items-center gap-2 justify-center"><CheckCircledIcon /> Share link copied!</div>
           ) : (
             <div className="flex gap-2 items-center">
-              <span className="overflow-scroll whitespace-nowrap">{window.location.href}</span>
+              <span className="overflow-hidden whitespace-nowrap">{displayedUrl}</span>
               <Button onClick={handleCopyUrl} variant="default" size="icon" className="cursor-pointer">
                 <CopyIcon className="size-4" />
               </Button>
