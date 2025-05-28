@@ -71,11 +71,11 @@ function EpisodeDetailsHeaderControls({
         <PopoverTrigger>
           <Button variant="link" size="icon" className="cursor-pointer">{isIOSOrMac ? <Share2Icon className="size-6" /> : <Share1Icon className="size-6" />}</Button>
         </PopoverTrigger>
-        <PopoverContent align="center" side="bottom" className="text-xs w-70 p-2 mr-4">
+        <PopoverContent align="center" side="bottom" className="w-70 p-2 mr-4">
           {copySuccess ? (
-            <div className="text-green-600 font-bold flex items-center gap-2 justify-center"><CheckCircledIcon /> Share link copied!</div>
+            <div className="text-green-600 font-bold flex items-center gap-2 justify-center text-md"><CheckCircledIcon /> Share link copied!</div>
           ) : (
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center text-sm">
               <span className="overflow-hidden whitespace-nowrap">{displayedUrl}</span>
               <Button onClick={handleCopyUrl} variant="default" size="icon" className="cursor-pointer">
                 <CopyIcon className="size-4" />
