@@ -71,11 +71,11 @@ aws s3 cp packages/client/dist/index.html s3://$BUCKET_NAME/index.html --profile
 echo "Uploading assets directory..."
 aws s3 sync packages/client/dist/assets/ s3://$BUCKET_NAME/assets/ --delete --profile "$AWS_PROFILE"
 
-# Invalidate CloudFront cache
-echo "Invalidating CloudFront cache..."
+# Invalidate CloudFront cache for specific client files only
+echo "Invalidating CloudFront cache for client files..."
 aws cloudfront create-invalidation \
   --distribution-id "$CLOUDFRONT_ID" \
-  --paths "/*" \
+  --paths "/index.html" "/assets/*" \
   --profile "$AWS_PROFILE" \
   --no-cli-pager
 
