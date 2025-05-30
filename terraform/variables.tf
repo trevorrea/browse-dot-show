@@ -62,5 +62,5 @@ variable "enable_search_lambda_warming" {
 variable "search_lambda_warming_schedule" {
   description = "Schedule expression for search lambda warming (e.g., 'rate(10 minutes)' or 'cron(*/7 * * * ? *)')"
   type        = string
-  default     = "rate(10 minutes)"
+  default     = "rate(5 minutes)"
 }
