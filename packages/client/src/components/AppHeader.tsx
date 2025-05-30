@@ -27,7 +27,7 @@ function InfoDrawer() {
           Find your favorite moments & quotes from the <strong><a href="https://podfollow.com/new-football-cliches" className="underline" target="_blank" rel="noopener noreferrer">Football Clichés</a></strong> podcast.
         </p>
         <p className="mb-2">
-          <em>Listen, Fair Play</em> transcribes all podcast episodes, and makes them searchable. Select a search result to jump to that point in the episode audio.
+          <em>Listen, Fair Play</em> transcribes and indexes all episodes. Select a search result to jump to that point in the audio.
         </p>
         <p>
           The code is fully open source, and available on <a href="https://github.com/jackkoppa/listen-fair-play" className="underline" target="_blank" rel="noopener noreferrer">GitHub</a>.
@@ -35,12 +35,11 @@ function InfoDrawer() {
         <br/>
         <p className="mb-2">Something not working? Suggestion for a new feature? Let me know.</p>
         <p>
-          <GitHubLogoIcon className="size-4 inline-block mr-1" /> <a href="https://github.com/jackkoppa/listen-fair-play/issues/new" className="underline" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <span><GitHubLogoIcon className="size-4 inline-block mr-1" /> <a href="https://github.com/jackkoppa/listen-fair-play/issues/new" className="underline" target="_blank" rel="noopener noreferrer">GitHub</a></span>
+          <span className="mx-6">|</span>
+          <span><img src={BlueskyLogo} alt="Bluesky Logo" className="size-4 inline-block mr-1" /> <a href="https://bsky.app/profile/jackkoppa.dev" className="underline" target="_blank" rel="noopener noreferrer">Bluesky</a></span>
         </p>
-        <p>
-          <img src={BlueskyLogo} alt="Bluesky Logo" className="size-4 inline-block mr-1" /> <a href="https://bsky.app/profile/jackkoppa.dev" className="underline" target="_blank" rel="noopener noreferrer">Bluesky</a>
-        </p>
-        <p className="mt-6 text-sm">
+        <p className="mt-6 mb-2 text-sm">
           <em>created by <a href="http://jackkoppa.com" className="underline" target="_blank" rel="noopener noreferrer">Jack Koppa</a></em>
         </p>
       </div>
@@ -62,7 +61,7 @@ function SettingsDrawer() {
       description="App settings and information"
       descriptionHidden={true}
     >
-      <div className="w-full pt-6">
+      <div className="w-full pt-4">
         <div className="flex gap-2 text-sm mb-10">
           Theme <ThemeToggle />
         </div>

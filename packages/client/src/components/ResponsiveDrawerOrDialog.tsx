@@ -43,7 +43,7 @@ export default function ResponsiveDrawerOrDialog({ childTrigger, title, descript
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px] font-mono bg-background text-foreground">
           <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
+            <DialogTitle className="text-xl">{title}</DialogTitle>
             <DialogDescription className={descriptionHidden ? "sr-only" : ""}>
               {description}
             </DialogDescription>
@@ -61,7 +61,7 @@ export default function ResponsiveDrawerOrDialog({ childTrigger, title, descript
       </DrawerTrigger>
       <DrawerContent className="font-mono bg-background text-foreground">
         <DrawerHeader className="text-left">
-          <DrawerTitle>{title}</DrawerTitle>
+          <DrawerTitle className="text-xl">{title}</DrawerTitle>
           <DrawerDescription className={descriptionHidden ? "sr-only" : ""}>
             {description}
           </DrawerDescription>
