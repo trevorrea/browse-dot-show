@@ -17,7 +17,7 @@ export function ThemeToggle() {
   return (
     <div className="px-2">
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <SwitchPrimitives.Root
             checked={theme === "dark"}
             onClick={handleThemeToggle}
