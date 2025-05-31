@@ -73,7 +73,6 @@ export async function searchOramaIndex(db: OramaSearchDatabase, searchRequest: S
       sortBy,
       sortOrder = 'DESC',
       searchFields = ['text'],
-      episodeIds
     } = searchRequest;
 
     // Build search options
@@ -95,13 +94,6 @@ export async function searchOramaIndex(db: OramaSearchDatabase, searchRequest: S
       searchOptions.sortBy = {
         property: sortBy,
         order: sortOrder
-      };
-    }
-
-    // Add episode ID filtering if specified (using Orama's where clause for string array filtering)
-    if (episodeIds && episodeIds.length > 0) {
-      searchOptions.where = {
-        sequentialEpisodeIdAsString: episodeIds.map(String) // Convert numbers to strings for Orama filtering
       };
     }
 
