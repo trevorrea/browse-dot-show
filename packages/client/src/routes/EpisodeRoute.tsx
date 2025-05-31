@@ -6,7 +6,7 @@ import { CaretSortIcon, MinusCircledIcon, Share1Icon, Share2Icon, Cross2Icon, Co
 import { log } from '../utils/logging';
 import { SearchEntry } from '@listen-fair-play/types'
 
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetClose } from '../components/ui/sheet'
 import { Badge } from "../components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover"
 import { Button } from "../components/ui/button"
@@ -25,7 +25,6 @@ interface EpisodeDetailsHeaderControlsProps {
   summary: string | null,
   isDescriptionOpen: boolean,
   setIsDescriptionOpen: (isOpen: boolean) => void,
-  handleCloseButton: () => void
 }
 
 function EpisodeDetailsHeaderControls({
@@ -33,7 +32,6 @@ function EpisodeDetailsHeaderControls({
   summary,
   isDescriptionOpen,
   setIsDescriptionOpen,
-  handleCloseButton
 }: EpisodeDetailsHeaderControlsProps) {
   const [isShareOpen, setIsShareOpen] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
@@ -85,7 +83,9 @@ function EpisodeDetailsHeaderControls({
           )}
         </PopoverContent>
       </Popover>
-      <Button variant="ghost" size="icon" onClick={handleCloseButton} className="self-end ml-auto cursor-pointer"><Cross2Icon className="size-6" /></Button>
+      <SheetClose asChild>
+        <Button variant="ghost" size="icon" className="self-end ml-auto cursor-pointer text-foreground"><Cross2Icon className="size-6" /></Button>
+      </SheetClose>
     </div>
   )
 }
@@ -263,7 +263,6 @@ export default function EpisodeRoute() {
             summary={summary}
             isDescriptionOpen={isDescriptionOpen}
             setIsDescriptionOpen={setIsDescriptionOpen}
-            handleCloseButton={handleCloseButton}
           />
           <SheetTitle className="text-lg/6 font-semibold mt-2 mb-2">
             {title}
