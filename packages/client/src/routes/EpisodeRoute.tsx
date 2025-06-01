@@ -44,8 +44,8 @@ function EpisodeDetailsHeaderControls({
       setCopySuccess(true)
 
       trackEvent({
-        eventName: 'copy-share-link-clicked',
-        eventData: `Copied Link: ${location.pathname + location.search}`,
+        eventName: `Copied: '${location.pathname + location.search}'`,
+        eventType: 'Share Link Copied',
       });
 
       // Close the popover after a brief delay to show the success message

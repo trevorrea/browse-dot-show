@@ -212,8 +212,8 @@ function HomePage() {
       }
 
       trackEvent({
-        eventName: 'search-performed',
-        eventData: `Query: ${query}`,
+        eventName: `Searched: '${query}'`,
+        eventType: 'Search Performed',
       });
 
       // Hide cold start loader once we have real search results

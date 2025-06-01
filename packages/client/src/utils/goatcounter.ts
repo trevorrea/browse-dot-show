@@ -1,9 +1,9 @@
 import { log } from './logging';
 
 interface GoatCounterEvent {
-    eventName: 'search-performed' | 'copy-share-link-clicked';
-    /** e.g. `Query: 'corridor'` or `Copied Link: /episode/354?q=corridor&start=1693780` */
-    eventData: string;
+    /** e.g. `Searched: 'football clubbing'` or `Copied: '/episode/354?q=corridor&start=1693780'` */
+    eventName: string;
+    eventType: 'Search Performed' | 'Share Link Copied';
 }
 
 /**
@@ -12,19 +12,19 @@ interface GoatCounterEvent {
  * 
  * DOCS: https://www.goatcounter.com/help/events
  */
-export const trackEvent = ({ eventName, eventData }: GoatCounterEvent) => {
+export const trackEvent = ({ eventName, eventType }: GoatCounterEvent) => {
     const goatcounter = (window as any).goatcounter;
     if (!goatcounter?.count) {
         log.debug(`
     Cannot find goatcounter script. Is it missing from index.html? 
-    Would have sent event: ${eventName} with data: ${eventData}`);
+    Would have sent event: ${eventName} with type: ${eventType}`);
         return;
     }
 
     // DOCS: https://www.goatcounter.com/help/events
     goatcounter.count({
         path: eventName,
-        title: eventData,
+        title: eventType,
         event: true,
     });
 }
