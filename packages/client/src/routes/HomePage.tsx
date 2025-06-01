@@ -12,6 +12,7 @@ import SearchResults from '../components/SearchResults'
 import { performSearch, performHealthCheck } from '../utils/search'
 import { SortOption } from '../types/search'
 import { useEpisodeManifest } from '../hooks/useEpisodeManifest'
+import { trackEvent } from '@/utils/goatcounter';
 
 // Get the search API URL from environment variable, fallback to localhost for development
 const SEARCH_API_BASE_URL = import.meta.env.VITE_SEARCH_API_URL || 'http://localhost:3001';
@@ -209,7 +210,12 @@ function HomePage() {
         setProcessingTimeMs(0);
         setMostRecentSuccessfulSearchQuery(null);
       }
-      
+
+      trackEvent({
+        eventName: 'search-performed',
+        eventData: `Query: ${query}`,
+      });
+
       // Hide cold start loader once we have real search results
       setShowColdStartLoader(false);
     } catch (e: any) {

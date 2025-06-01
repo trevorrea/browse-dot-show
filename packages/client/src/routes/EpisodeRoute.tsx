@@ -17,6 +17,7 @@ import { formatDate } from '@/utils/date'
 import { formatMillisecondsToMMSS } from '@/utils/time'
 import { useAudioSource } from '@/hooks/useAudioSource'
 import { useEpisodeManifest } from '@/hooks/useEpisodeManifest'
+import { trackEvent } from '@/utils/goatcounter';
 
 // Add a simple check for whether this is iOS or Mac, vs anything else:
 const isIOSOrMac = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -41,6 +42,12 @@ function EpisodeDetailsHeaderControls({
     try {
       await navigator.clipboard.writeText(window.location.href)
       setCopySuccess(true)
+
+      trackEvent({
+        eventName: 'copy-share-link-clicked',
+        eventData: `Copied Link: ${location.pathname + location.search}`,
+      });
+
       // Close the popover after a brief delay to show the success message
       setTimeout(() => {
         setIsShareOpen(false)
