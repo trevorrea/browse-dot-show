@@ -3,37 +3,39 @@ import AudioPlayerH5, { RHAP_UI } from 'react-h5-audio-player';
 import { PlayIcon, PauseIcon } from '@radix-ui/react-icons';
 import { cn } from '@/lib/utils';
 
-import Skip15SecondsBack from '../../icons/skip-15-seconds-back.svg';
-import Skip15SecondsForward from '../../icons/skip-15-seconds-forward.svg';
+import Skip15SecondsBack from '../../icons/skip-15-seconds-back.svg?react';
+import Skip15SecondsForward from '../../icons/skip-15-seconds-forward.svg?react';
 
-const baseIconButtonStyle = 'flex items-center justify-center w-8 h-8 -mt-1';
+const baseIconButtonStyle = 'flex items-center justify-center w-10 h-10';
 
 // Custom play/pause icon elements (NOT buttons - the library will wrap them in buttons)
 const PlayIconElement = (
   // Given that we can't use <Button> here, we'll roughly attempt to match the styling from `../ui/button.tsx`
-  <div className={cn(baseIconButtonStyle, 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90')}>
-    <PlayIcon className="w-4 h-4" />
+  <div className={cn(baseIconButtonStyle, '-mt-1 bg-primary text-primary-foreground shadow-xs hover:bg-primary/90')}>
+    <PlayIcon className="w-8 h-8" />
   </div>
 );
 
 const PauseIconElement = (
   // Given that we can't use <Button> here, we'll roughly attempt to match the styling from `../ui/button.tsx`
-  <div className={cn(baseIconButtonStyle, 'bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60')}>
-    <PauseIcon className="w-4 h-4" />
+  <div className={cn(baseIconButtonStyle, '-mt-1 bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60')}>
+    <PauseIcon className="w-8 h-8" />
   </div>
 );
 
+const skipIconButtonStyle = 'mt-[-2px] ml-[-3px] hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50';
+
 // Custom 15-second backward icon
 const Skip15BackwardElement = (
-  <div className={cn(baseIconButtonStyle, 'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80')}>
-    <img src={Skip15SecondsBack} alt="Skip 15 seconds back" className="w-4 h-4" />
+  <div className={cn(baseIconButtonStyle, skipIconButtonStyle)}>
+    <Skip15SecondsBack className="w-6 h-6" />
   </div>
 );
 
 // Custom 15-second forward icon
 const Skip15ForwardElement = (
-  <div className={cn(baseIconButtonStyle, 'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80')}>
-    <img src={Skip15SecondsForward} alt="Skip 15 seconds forward" className="w-4 h-4" />
+  <div className={cn(baseIconButtonStyle, skipIconButtonStyle)}>
+    <Skip15SecondsForward className="w-6 h-6" />
   </div>
 );
 

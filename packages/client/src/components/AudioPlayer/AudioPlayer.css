@@ -9,6 +9,12 @@
   .rhap_main-controls-button {
     position: relative;
   }
+
+  .rhap_play-pause-button {
+    height: calc(var(--spacing) * 12);
+    width: calc(var(--spacing) * 12);
+    margin: 0 calc(var(--spacing) * 2) 0 calc(var(--spacing) * 3);
+  }
   
   .rhap_progress-container {
     margin: 0;

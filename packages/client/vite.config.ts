@@ -1,6 +1,7 @@
 import tailwindcss from "@tailwindcss/vite"
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import svgr from 'vite-plugin-svgr'
 import fs from 'fs'
 import path from 'path'
 import type { ViteDevServer } from 'vite'
@@ -93,6 +94,7 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     react(),
+    svgr(),
     transcriptServerPlugin()
   ],
   build: {
