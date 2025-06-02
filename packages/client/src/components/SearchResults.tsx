@@ -55,7 +55,7 @@ const SearchTimeAndResultCount = ({
         {isLoading ? (
           <em>Search time: <div className="h-3 w-12 bg-gray-200 animate-pulse rounded inline-block align-middle"></div></em>
         ) : (
-          processingTimeSeconds > 0 && <em>Search time: {processingTimeSeconds}s</em>
+          <em>Search time: {processingTimeSeconds}s</em>
         )}
       </span>
       <span className="text-foreground">
@@ -65,8 +65,8 @@ const SearchTimeAndResultCount = ({
           ) : (
             <>
               {results.length > 0 && totalHits > 0 ? (
-                startIndex === endIndex ? (
-                  startIndex
+                endIndex === totalHits ? (
+                  endIndex
                 ) : (
                   `${startIndex}-${endIndex}`
                 )
@@ -110,8 +110,8 @@ export default function SearchResults({
     );
   }
 
-  // round to nearest 0.001 seconds
-  const processingTimeSeconds = Number((processingTimeMs / 1000).toFixed(3));
+  // round to nearest 0.001 seconds, and always show at least 0.001 seconds
+  const processingTimeSeconds = Math.max(Number((processingTimeMs / 1000).toFixed(3)), 0.001);
 
   // Only show this banner area once we've had a successful search
   const showResultsInfo = Boolean(mostRecentSuccessfulSearchQuery);
