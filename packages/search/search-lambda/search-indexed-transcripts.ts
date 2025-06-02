@@ -89,7 +89,6 @@ export async function handler(event: any): Promise<SearchResponse> {
       searchFields: ['text'],
       sortBy: undefined,
       sortOrder: 'DESC',
-      episodeIds: undefined,
       isHealthCheckOnly: false
     };
 
@@ -107,7 +106,6 @@ export async function handler(event: any): Promise<SearchResponse> {
           searchFields: queryParams.fields ? queryParams.fields.split(',') : ['text'],
           sortBy: queryParams.sortBy || undefined,
           sortOrder: (queryParams.sortOrder as 'ASC' | 'DESC') || 'DESC',
-          episodeIds: queryParams.episodeIds ? queryParams.episodeIds.split(',').map(Number) : undefined,
           isHealthCheckOnly: queryParams.isHealthCheckOnly === 'true'
         };
       } else if (method === 'POST' && event.body) {
@@ -123,7 +121,6 @@ export async function handler(event: any): Promise<SearchResponse> {
           searchFields: body.searchFields || ['text'],
           sortBy: body.sortBy || undefined,
           sortOrder: body.sortOrder || 'DESC',
-          episodeIds: body.episodeIds || undefined,
           isHealthCheckOnly: body.isHealthCheckOnly || false
         };
       }
@@ -140,7 +137,6 @@ export async function handler(event: any): Promise<SearchResponse> {
         searchFields: body.searchFields || ['text'],
         sortBy: body.sortBy || undefined,
         sortOrder: body.sortOrder || 'DESC',
-        episodeIds: body.episodeIds || undefined,
         isHealthCheckOnly: body.isHealthCheckOnly || false
       };
     } else if (typeof event.query === 'string') {
@@ -152,7 +148,6 @@ export async function handler(event: any): Promise<SearchResponse> {
         searchFields: event.searchFields || ['text'],
         sortBy: event.sortBy || undefined,
         sortOrder: event.sortOrder || 'DESC',
-        episodeIds: event.episodeIds || undefined,
         isHealthCheckOnly: event.isHealthCheckOnly || false
       };
     }
@@ -170,6 +165,9 @@ export async function handler(event: any): Promise<SearchResponse> {
         sortOrder: 'DESC'
       };
     }
+
+    // // For local testing: add delay
+    // await new Promise(resolve => setTimeout(resolve, 5000));
 
     // Perform the search using Orama
     const searchResponse = await searchOramaIndex(index, searchRequest);

@@ -48,6 +48,8 @@ const SearchTimeAndResultCount = ({
   // Calculate the range of results being shown
   const startIndex = (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalHits);
+
+  const isOnlyOnePageOfResults = startIndex === 1 && endIndex === totalHits;
   
   return (
     <div className="flex flex-col gap-2 self-end">
@@ -65,7 +67,7 @@ const SearchTimeAndResultCount = ({
           ) : (
             <>
               {results.length > 0 && totalHits > 0 ? (
-                endIndex === totalHits ? (
+                isOnlyOnePageOfResults ? (
                   endIndex
                 ) : (
                   `${startIndex}-${endIndex}`
@@ -149,17 +151,25 @@ export default function SearchResults({
 
       {isLoading && !error ? (
         <div className="loading-skeleton space-y-6">
-          {[...Array(3)].map((_, index) => (
-            <div key={index} className="border-foreground border-2 shadow-[4px_4px_0px_rgba(0,0,0,1)] rounded-none p-4">
-              <div className="flex justify-between items-start mb-3">
-                <div className="h-4 w-16 bg-gray-200 animate-pulse rounded"></div>
-                <div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div>
-              </div>
-              <div className="space-y-2 mb-3">
+          {[...Array(4)].map((_, index) => (
+            <div key={index} className="border-foreground border-2 shadow-[4px_4px_0px_rgba(0,0,0,1)] rounded-xl p-6">
+              {/* Main text area (like CardContent) */}
+              <div className="space-y-2 mb-4">
+                <div className="h-4 w-full bg-gray-200 animate-pulse rounded"></div>
                 <div className="h-4 w-full bg-gray-200 animate-pulse rounded"></div>
                 <div className="h-4 w-3/4 bg-gray-200 animate-pulse rounded"></div>
               </div>
-              <div className="h-4 w-32 bg-gray-200 animate-pulse rounded"></div>
+
+              {/* Footer area (like CardFooter) */}
+              <div className="mt-3"> {/* Adjusted margin for visual spacing */}
+                {/* Badges row */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-4 w-20 bg-gray-200 animate-pulse rounded-md"></div> {/* Date badge skeleton */}
+                  <div className="h-4 w-18 bg-gray-200 animate-pulse rounded-md"></div> {/* Time range badge skeleton */}
+                </div>
+                {/* Episode title line */}
+                <div className="h-2 w-4/5 bg-gray-200 animate-pulse rounded"></div> {/* Episode title skeleton (text-xs height) */}
+              </div>
             </div>
           ))}
         </div>
