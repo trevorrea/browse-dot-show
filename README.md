@@ -6,26 +6,14 @@ A podcast archiving and searching application:
 3. Transcribes audio using OpenAI's Whisper API
 4. Provides a search interface for transcripts
 
-## Project Structure
-
-- `/aws-local-dev`: gitignored folders matching S3 file structure, for local dev
-- `/client`: React web application for searching transcripts
-- `/processing`: AWS Lambda functions for podcast processing
-  - `retrieve-rss-feeds-and-download-audio-files.ts`: Retrieves RSS feeds and downloads audio
-  - `process-new-audio-files-via-whisper.ts`: Transcribes audio files via Whisper API
-- `/search`: AWS Lambda function for searching indexed podcast transcriptions
-- `/diagrams`: Architecture diagrams
-- `/terraform`: Terraform configurations for AWS infrastructure
-- `/scripts`: Utility scripts for local development and deployment
-
 ## AWS Architecture
 
 See [`diagrams/README.md`](./diagrams/README.md)
 
 ## Local Development
 
-- For developing the React web appplication, see [`client/README.md`](/client/README.md)
-- For developing Lambda functions, see [`processing/README.md`](/processing/README.md)
+- For developing the React web appplication, see [`packages/client/README.md`](/packages/client/README.md)
+- For developing Lambda functions, see [`packages/ingestion/README.md`](/packages/ingestion/README.md) & [packages/search/README.md](/packages/search/README.md)
 
 ## Deployment
 
