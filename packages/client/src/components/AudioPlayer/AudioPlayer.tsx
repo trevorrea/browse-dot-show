@@ -3,6 +3,9 @@ import AudioPlayerH5, { RHAP_UI } from 'react-h5-audio-player';
 import { PlayIcon, PauseIcon } from '@radix-ui/react-icons';
 import { cn } from '@/lib/utils';
 
+import Skip15SecondsBack from '../../icons/skip-15-seconds-back.svg';
+import Skip15SecondsForward from '../../icons/skip-15-seconds-forward.svg';
+
 const baseIconButtonStyle = 'flex items-center justify-center w-8 h-8 -mt-1';
 
 // Custom play/pause icon elements (NOT buttons - the library will wrap them in buttons)
@@ -17,6 +20,20 @@ const PauseIconElement = (
   // Given that we can't use <Button> here, we'll roughly attempt to match the styling from `../ui/button.tsx`
   <div className={cn(baseIconButtonStyle, 'bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60')}>
     <PauseIcon className="w-4 h-4" />
+  </div>
+);
+
+// Custom 15-second backward icon
+const Skip15BackwardElement = (
+  <div className={cn(baseIconButtonStyle, 'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80')}>
+    <img src={Skip15SecondsBack} alt="Skip 15 seconds back" className="w-4 h-4" />
+  </div>
+);
+
+// Custom 15-second forward icon
+const Skip15ForwardElement = (
+  <div className={cn(baseIconButtonStyle, 'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80')}>
+    <img src={Skip15SecondsForward} alt="Skip 15 seconds forward" className="w-4 h-4" />
   </div>
 );
 
@@ -86,6 +103,10 @@ const AudioPlayer = forwardRef<AudioPlayerRef, AudioPlayerProps>(({
         showFilledVolume={true}
         hasDefaultKeyBindings={true}
         preload="metadata"
+        progressJumpSteps={{
+          backward: 15000, // 15 seconds backward
+          forward: 15000   // 15 seconds forward
+        }}
         onLoadStart={handleLoadStart}
         onCanPlay={handleCanPlay}
         onError={handleError}
@@ -96,6 +117,8 @@ const AudioPlayer = forwardRef<AudioPlayerRef, AudioPlayerProps>(({
         customIcons={{
           play: PlayIconElement,
           pause: PauseIconElement,
+          rewind: Skip15BackwardElement,
+          forward: Skip15ForwardElement,
         }}
         loop={false}
         muted={false}
