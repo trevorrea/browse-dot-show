@@ -1,7 +1,7 @@
 import { log } from './logging';
 
 interface GoatCounterEvent {
-    /** e.g. `Searched: 'football clubbing'` or `Copied: '/episode/354?q=corridor&start=1693780'` or `Result Clicked` or `Play Button Clicked`  */
+    /** e.g. `Searched: 'football clubbing'` or `Share Link Copied` or `Result Clicked` or `Play Button Clicked`  */
     eventName: string;
     eventType: 'Search Performed' | 'Share Link Copied' | 'Result Clicked' | 'Play Button Clicked';
 }

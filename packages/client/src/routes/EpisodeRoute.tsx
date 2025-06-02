@@ -44,7 +44,7 @@ function EpisodeDetailsHeaderControls({
       setCopySuccess(true)
 
       trackEvent({
-        eventName: `Copied: '${location.pathname + location.search}'`,
+        eventName: 'Share Link Copied',
         eventType: 'Share Link Copied',
       });
 
