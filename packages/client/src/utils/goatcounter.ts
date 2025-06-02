@@ -1,13 +1,14 @@
 import { log } from './logging';
 
 interface GoatCounterEvent {
-    /** e.g. `Searched: 'football clubbing'` or `Copied: '/episode/354?q=corridor&start=1693780'` */
+    /** e.g. `Searched: 'football clubbing'` or `Copied: '/episode/354?q=corridor&start=1693780'` or `Result Clicked` or `Play Button Clicked`  */
     eventName: string;
-    eventType: 'Search Performed' | 'Share Link Copied';
+    eventType: 'Search Performed' | 'Share Link Copied' | 'Result Clicked' | 'Play Button Clicked';
 }
 
 /**
- * Instead of tracking page views, we only care about a few events.
+ * Instead of tracking page views throughout the SPA (e.g. when navigating between routes), 
+ * we only care about a few events.
  * We do this using goatcounter, initialized in index.html.
  * 
  * DOCS: https://www.goatcounter.com/help/events

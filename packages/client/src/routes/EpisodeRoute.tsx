@@ -214,6 +214,11 @@ export default function EpisodeRoute() {
   const handlePlay = () => {
     // Mark that user has interacted with the audio
     setHasUserInteracted(true);
+
+    trackEvent({
+      eventName: `Play Button Clicked`,
+      eventType: 'Play Button Clicked',
+    });
   }
 
   const handleEntryClick = (entry: SearchEntry) => {

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatDate } from '@/utils/date';
 import { formatMillisecondsToMMSS } from '@/utils/time';
 import HighlightedText from './HighlightedText';
+import { trackEvent } from '@/utils/goatcounter';
 
 export interface SearchResultProps {
   result: ApiSearchResultHit;
@@ -36,6 +37,12 @@ const SearchResult: React.FC<SearchResultProps> = ({ result, episodeData }) => {
 
     // Navigate to episode route with all parameters
     const queryString = currentParams.toString();
+
+    trackEvent({
+      eventName: `Result Clicked`,
+      eventType: 'Result Clicked',
+    });
+
     navigate(`/episode/${episodeData.sequentialId}${queryString ? `?${queryString}` : ''}`);
   };
 
