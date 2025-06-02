@@ -32,6 +32,8 @@ interface SearchTimeAndResultCountProps {
   processingTimeSeconds: number;
   totalHits: number;
   results: ApiSearchResultHit[];
+  currentPage: number;
+  itemsPerPage: number;
 }
 
 
@@ -40,7 +42,13 @@ const SearchTimeAndResultCount = ({
   processingTimeSeconds,
   totalHits,
   results,
+  currentPage,
+  itemsPerPage,
 }: SearchTimeAndResultCountProps) => {
+  // Calculate the range of results being shown
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, totalHits);
+  
   return (
     <div className="flex flex-col gap-2 self-end">
       <span className="text-muted-foreground">
@@ -56,8 +64,16 @@ const SearchTimeAndResultCount = ({
             <div className="h-3 w-10 bg-gray-200 animate-pulse rounded inline-block align-middle"></div>
           ) : (
             <>
-              {results.length}
-              {totalHits !== results.length && (
+              {results.length > 0 && totalHits > 0 ? (
+                startIndex === endIndex ? (
+                  startIndex
+                ) : (
+                  `${startIndex}-${endIndex}`
+                )
+              ) : (
+                0
+              )}
+              {totalHits > 0 && (
                 <> <em>of</em> {totalHits}</>
               )}
             </>
@@ -110,6 +126,8 @@ export default function SearchResults({
           processingTimeSeconds={processingTimeSeconds}
           totalHits={totalHits}
           results={results}
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
         />
 
         {/* Right side: Sort dropdown */}
