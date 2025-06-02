@@ -117,7 +117,7 @@ export default function SearchResults({
   const showResultsInfo = Boolean(mostRecentSuccessfulSearchQuery);
 
   return (
-    <div className="results-container">
+    <div className="mb-10">
       {showResultsInfo && (
         <div className="results-info-and-controls flex justify-between items-start mb-4 text-xs sm:text-[12px]">
         {/* Left side: Search time and hits info */}
