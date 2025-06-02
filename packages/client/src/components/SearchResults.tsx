@@ -194,7 +194,7 @@ export default function SearchResults({
         </>
       ) : searchQuery.trim().length >= 2 && !error ? (
         <p className="no-results text-lg text-gray-600 text-center bg-gray-100 p-6 border-foreground border-2 shadow-[4px_4px_0px_rgba(0,0,0,1)] rounded-none">
-          No results found for "{searchQuery}". Try a different term, perhaps something more pedantic?
+          No results found for "{searchQuery}". Try a different term?
         </p>
       ) : null}
     </div>
