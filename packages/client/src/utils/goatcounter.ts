@@ -1,11 +1,9 @@
 import { log } from './logging';
 
 /**
- * TODO: Re-enable when traffic comes down a bit.
- * 
- * Currently getting rate limited during initial launch.
+ * Disable if we're getting rate limited.
  */
-const GOATCOUNTER_ENABLED = false;
+const GOATCOUNTER_ENABLED = true;
 
 interface GoatCounterEvent {
     /** e.g. `Searched: 'football clubbing'` or `Share Link Copied` or `Result Clicked` or `Play Button Clicked`  */
