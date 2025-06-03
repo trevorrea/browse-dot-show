@@ -1,5 +1,12 @@
 import { log } from './logging';
 
+/**
+ * TODO: Re-enable when traffic comes down a bit.
+ * 
+ * Currently getting rate limited during initial launch.
+ */
+const GOATCOUNTER_ENABLED = false;
+
 interface GoatCounterEvent {
     /** e.g. `Searched: 'football clubbing'` or `Share Link Copied` or `Result Clicked` or `Play Button Clicked`  */
     eventName: string;
@@ -14,6 +21,10 @@ interface GoatCounterEvent {
  * DOCS: https://www.goatcounter.com/help/events
  */
 export const trackEvent = ({ eventName, eventType }: GoatCounterEvent) => {
+    if (!GOATCOUNTER_ENABLED) {
+        return;
+    }
+
     const goatcounter = (window as any).goatcounter;
     if (!goatcounter?.count) {
         log.debug(`
