@@ -45,7 +45,7 @@ export default function SearchResultsPagination({
   return (
     <div className="mt-8 flex justify-center">
       <Pagination>
-        <PaginationContent>
+        <PaginationContent className="text-foreground">
           {currentPage > 1 && (
             <PaginationItem>
               <PaginationPrevious 
