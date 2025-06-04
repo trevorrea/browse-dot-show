@@ -1,10 +1,11 @@
 # Listen Fair Play
 
 A podcast archiving and searching application:
-1. Retrieves podcast RSS feeds
-2. Downloads audio files
-3. Transcribes audio using OpenAI's Whisper API
-4. Provides a search interface for transcripts
+
+1. Retrieves podcast RSS feeds & downloads audio files
+2. Transcribes audio using OpenAI's Whisper model (API or locally)
+3. Indexes those transcripts in a persistent index
+4. Provides a search interface for querying those transcripts, and playing the audio at the transcript timestamps
 
 ## AWS Architecture
 
@@ -13,7 +14,7 @@ See [`diagrams/README.md`](./diagrams/README.md)
 ## Local Development
 
 - For developing the React web appplication, see [`packages/client/README.md`](/packages/client/README.md)
-- For developing Lambda functions, see [`packages/ingestion/README.md`](/packages/ingestion/README.md) & [packages/search/README.md](/packages/search/README.md)
+- For developing Lambda functions, see [`packages/ingestion/README.md`](/packages/ingestion/README.md) & [`packages/search/README.md`](/packages/search/README.md)
 
 ## Deployment
 
@@ -58,11 +59,9 @@ aws sso login --profile YourProfileName
 
 ## Testing/Triggering AWS functionality
 
-**non-exhaustive**
-
 ```bash
-# Manually trigger the first of the Lambda functions
-./scripts/trigger-retrieve-rss-lambda.sh
+# Manually trigger one of the 3 `ingestion` Lambda functions
+./scripts/trigger-ingestion-lambda.sh
 ```
 
 ## More Resources
