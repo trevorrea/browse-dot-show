@@ -180,7 +180,7 @@ module "eventbridge_schedule" {
   source = "./modules/eventbridge"
   
   schedule_name        = "daily-rss-processing"
-  schedule_expression  = "cron(0 0 * * ? *)"  # Run at midnight UTC daily
+  schedule_expression  = "cron(0 1,8,16 * * ? *)"  # Run at 1 AM, 8 AM, and 4 PM UTC daily
   lambda_function_arn  = module.rss_lambda.lambda_function_arn
   environment          = var.environment
 }
