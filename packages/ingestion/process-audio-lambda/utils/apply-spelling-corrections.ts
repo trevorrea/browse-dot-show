@@ -79,9 +79,14 @@ export async function applySpellingCorrections(srtContent: string): Promise<Appl
       const matches = correctedContent.match(pattern);
       
       if (matches) {
-        correctionsForThisSpelling += matches.length;
-        // Replace all instances with the correct spelling
+        // Only count actual corrections (where text changes)
+        const beforeReplacement = correctedContent;
         correctedContent = correctedContent.replace(pattern, correction.correctedSpelling);
+        
+        // Count only if the content actually changed
+        if (beforeReplacement !== correctedContent) {
+          correctionsForThisSpelling += matches.length;
+        }
       }
     }
 
