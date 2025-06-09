@@ -352,7 +352,6 @@ export default function EpisodeRoute() {
               onPause={handlePause}
               onSeek={handleSeek}
               onLimitExceededClick={() => setShowLimitDialog(true)}
-              episodeId={episodeData.sequentialId.toString()}
               isLimitExceeded={playTimeLimit.isLimitExceeded(episodeData.sequentialId.toString())}
             />
           </div>
