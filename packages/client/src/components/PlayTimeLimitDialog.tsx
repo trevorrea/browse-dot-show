@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { Button } from './ui/button';
 import {

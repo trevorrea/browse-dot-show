@@ -47,7 +47,6 @@ interface AudioPlayerProps {
   onSeek?: () => void;
   onLimitExceededClick?: () => void;
   className?: string;
-  episodeId?: string;
   isLimitExceeded?: boolean;
 }
 
@@ -64,7 +63,6 @@ const AudioPlayer = forwardRef<AudioPlayerRef, AudioPlayerProps>(({
   onPause,
   onSeek,
   onLimitExceededClick,
-  episodeId,
   isLimitExceeded = false
 }, ref) => {
   const [isLoading, setIsLoading] = useState(false);
