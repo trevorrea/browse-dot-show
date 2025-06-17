@@ -6,7 +6,8 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "build": "tsc"
+        "build": "tsc",
+        "test": "vitest run"
     },
     "devDependencies": {
         "@browse-dot-show/types": "workspace:*",
@@ -18,7 +19,8 @@
         "@aws-sdk/lib-storage": "catalog:",
         "@types/fs-extra": "catalog:",
         "fs-extra": "catalog:",
-        "typescript": "catalog:"
+        "typescript": "catalog:",
+        "vitest": "catalog:"
     },
     "exports": {
         ".": "./dist/index.js"

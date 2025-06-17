@@ -86,6 +86,19 @@ export async function handler(event: any): Promise<SearchResponse> {
   log.info('Search request received:', JSON.stringify(event));
   const startTime = Date.now();
 
+  // Handle CORS preflight requests (OPTIONS) immediately
+  if (event.requestContext?.http?.method === 'OPTIONS') {
+    log.info('CORS preflight request received, returning early without processing');
+    return {
+      hits: [],
+      totalHits: 0,
+      processingTimeMs: Date.now() - startTime,
+      query: 'preflight-check',
+      sortBy: undefined,
+      sortOrder: 'DESC'
+    };
+  }
+
   // Determine forceFreshDBFileDownload early, as it's needed for initializeOramaIndex
   let forceFreshDBFileDownload = false;
   if (event.requestContext?.http?.method === 'GET' && event.queryStringParameters) {

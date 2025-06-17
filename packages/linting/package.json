@@ -17,7 +17,7 @@
     },
     "devDependencies": {
         "typescript": "catalog:",
-        "vitest": "^1.6.1",
+        "vitest": "catalog:",
         "tsx": "catalog:",
         "srt-parser-2": "catalog:",
         "xml2js": "catalog:",

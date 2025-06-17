@@ -28,7 +28,7 @@
     "rolldown": "catalog:",
     "typescript": "catalog:",
     "tsx": "catalog:",
-    "vitest": "^1.6.1"
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=20.0.0"

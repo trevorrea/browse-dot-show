@@ -11,6 +11,17 @@ if ! command -v terraform &> /dev/null; then
 else
     TERRAFORM_VERSION=$(terraform --version | head -n 1 | cut -d ' ' -f 2 | cut -d 'v' -f 2)
     echo "✅ Terraform v$TERRAFORM_VERSION installed"
+    
+    # Check Terraform version (minimum 1.6.0 required for AWS SSO support)
+    # See: https://github.com/hashicorp/terraform/issues/32465#issuecomment-1748527139
+    TERRAFORM_MAJOR=$(echo $TERRAFORM_VERSION | cut -d '.' -f 1)
+    TERRAFORM_MINOR=$(echo $TERRAFORM_VERSION | cut -d '.' -f 2)
+    
+    if [ "$TERRAFORM_MAJOR" -lt 1 ] || ([ "$TERRAFORM_MAJOR" -eq 1 ] && [ "$TERRAFORM_MINOR" -lt 6 ]); then
+        echo "❌ Terraform version 1.6.0 or later is required for AWS SSO support (current: $TERRAFORM_VERSION)"
+        echo "  Please upgrade Terraform from https://developer.hashicorp.com/terraform/install"
+        exit 1
+    fi
 fi
 
 # Check if AWS CLI is installed
