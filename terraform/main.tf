@@ -242,6 +242,7 @@ module "search_lambda" {
     S3_BUCKET_NAME     = module.s3_bucket.bucket_name
     LOG_LEVEL          = var.log_level
     SITE_ID            = var.site_id
+    FILE_STORAGE_ENV   = "prod-s3"
   }
   source_dir           = "../packages/search/search-lambda/aws-dist"
   s3_bucket_name       = module.s3_bucket.bucket_name
