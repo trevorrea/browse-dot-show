@@ -115,8 +115,6 @@ resource "aws_iam_role_policy_attachment" "lambda_invoke" {
 
 # CloudFront invalidation policy
 resource "aws_iam_policy" "cloudfront_invalidation" {
-  count = var.cloudfront_distribution_arn != "" ? 1 : 0 # Only create if ARN is provided
-
   name        = "${var.function_name}-cloudfront-invalidation-policy"
   description = "IAM policy for CloudFront cache invalidation from Lambda"
 
@@ -126,15 +124,13 @@ resource "aws_iam_policy" "cloudfront_invalidation" {
       {
         Effect = "Allow"
         Action = "cloudfront:CreateInvalidation"
-        Resource = var.cloudfront_distribution_arn
+        Resource = "*" # Allow invalidation on any CloudFront distribution
       }
     ]
   })
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_cloudfront_invalidation" {
-  count = var.cloudfront_distribution_arn != "" ? 1 : 0 # Only attach if ARN is provided
-
   role       = aws_iam_role.lambda_exec.name
-  policy_arn = aws_iam_policy.cloudfront_invalidation[0].arn
+  policy_arn = aws_iam_policy.cloudfront_invalidation.arn
 } 

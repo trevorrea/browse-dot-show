@@ -154,7 +154,7 @@ module "rss_lambda" {
   s3_bucket_name       = module.s3_bucket.bucket_name
   site_id              = var.site_id
   lambda_architecture  = ["arm64"]
-  cloudfront_distribution_arn = module.cloudfront.cloudfront_arn
+
 }
 
 # Lambda for Whisper transcription
