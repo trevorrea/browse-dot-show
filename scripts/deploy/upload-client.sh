@@ -55,7 +55,10 @@ cd packages/client
 export VITE_SEARCH_API_URL="$SEARCH_API_URL"
 export VITE_S3_HOSTED_FILES_BASE_URL="$S3_HOSTED_FILES_BASE_URL"
 export SITE_ID="$SITE_ID"
-pnpm build:site
+
+# CURSOR-TODO - replace build:site with building all sites, and pulling out the correct one
+# pnpm build:site
+
 cd ../..
 
 echo "Uploading client files to S3 bucket: $BUCKET_NAME"

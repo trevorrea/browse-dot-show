@@ -7,7 +7,6 @@
   "type": "module",
   "scripts": {
     "build:dev": "dotenvx run -f ../../../.env.dev -- rolldown -c rolldown.config.ts && pnpm __prepare-for-aws",
-    "build:site": "../../../scripts/build-lambda-for-site.sh @browse-dot-show/search-lambda",
     "dev:local": "tsx dev-server.ts",
     "dev:site": "../../../scripts/run-lambda-for-site.sh @browse-dot-show/search-lambda dev-server.ts",
     "test:local": "tsx simple-test-local.ts",

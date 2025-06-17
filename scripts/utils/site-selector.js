@@ -91,9 +91,9 @@ function validateSite(siteId) {
         return { valid: false, errors };
     }
 
-    const envAwsPath = path.join(siteDir, '.env.aws');
+    const envAwsPath = path.join(siteDir, '.env.aws-sso');
     if (!fs.existsSync(envAwsPath)) {
-        errors.push(`Missing .env.aws file for site "${siteId}"`);
+        errors.push(`Missing .env.aws-sso file for site "${siteId}"`);
     }
 
     return { valid: errors.length === 0, errors };
@@ -205,8 +205,8 @@ function loadSiteEnvVars(siteId, env = 'dev') {
 
     const envVars = {};
 
-    // Load site-specific .env.aws
-    const envAwsPath = path.join(siteDir, '.env.aws');
+    // Load site-specific .env.aws-sso
+    const envAwsPath = path.join(siteDir, '.env.aws-sso');
     if (fs.existsSync(envAwsPath)) {
         const envContent = fs.readFileSync(envAwsPath, 'utf8');
         envContent.split('\n').forEach(line => {

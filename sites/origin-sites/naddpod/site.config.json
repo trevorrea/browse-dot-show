@@ -1,6 +1,7 @@
 {
     "id": "naddpod",
     "domain": "naddpod.browse.show",
+    "canonicalUrl": "https://naddpod.browse.show",
     "shortTitle": "NADDPOD",
     "fullTitle": "Not Another D&D Podcast",
     "description": "Search all NADDPOD episodes",
@@ -13,5 +14,6 @@
             "url": "https://rss.art19.com/not-another-d-and-d-podcast"
         }
     ],
-    "whisperTranscriptionPrompt": "Welcome to the campaign after the campaign! This is Not Another D&D Podcast. I'm your Dungeon Master, Emily Axford, here with Brian Murphy, Jake Hurwitz and Caldwell Tanner. Let's get started!"
+    "whisperTranscriptionPrompt": "Welcome to the campaign after the campaign! This is Not Another D&D Podcast. I'm your Dungeon Master, Emily Axford, here with Brian Murphy, Jake Hurwitz and Caldwell Tanner. Let's get started!",
+    "themeColor": "#fd0e41"
 }

@@ -119,7 +119,7 @@ SKIP_SITE_SELECTION_PROMPT=false
 ```
 
 
-`/Users/jackkoppa/Personal_Development/browse-dot-show/sites/origin-sites/listenfairplay/.env.aws`
+`/Users/jackkoppa/Personal_Development/browse-dot-show/sites/origin-sites/listenfairplay/.env.aws-sso`
 
 ```
 AWS_PROFILE=AdministratorAccess_dev_LFP-296297840998

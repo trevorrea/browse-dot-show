@@ -10,6 +10,7 @@ import { log } from './src/utils/logging';
 
 // Import site loading utilities - using relative path for monorepo
 import { getSiteById, getSiteDirectory } from '../../sites/dist/index.js';
+import type { SiteConfig } from '../../sites/types.js';
 
 // Function to load site configuration and create environment variables
 function loadSiteConfig() {
@@ -43,6 +44,13 @@ function loadSiteConfig() {
     VITE_SITE_DESCRIPTION: siteConfig.description,
     VITE_SITE_PODCAST_LINKS: JSON.stringify(podcastLinks),
   };
+}
+
+// Function to get site config without env vars wrapper
+function getSiteConfig() {
+  const siteId = process.env.SELECTED_SITE_ID || process.env.SITE_ID;
+  if (!siteId) return null;
+  return getSiteById(siteId);
 }
 
 // Function to load site-specific CSS content
@@ -93,6 +101,32 @@ function siteSpecificCssPlugin() {
       if (fs.existsSync(tempCssPath)) {
         fs.unlinkSync(tempCssPath);
       }
+    }
+  };
+}
+
+// Plugin to replace template variables in HTML files
+function templateReplacementPlugin() {
+  return {
+    name: 'template-replacement',
+    generateBundle(options: any, bundle: any) {
+      const siteConfig = getSiteConfig();
+      if (!siteConfig) return;
+
+      // Find the HTML file in the bundle
+      Object.keys(bundle).forEach(fileName => {
+        if (fileName.endsWith('.html')) {
+          const file = bundle[fileName];
+          if (file.type === 'asset' && typeof file.source === 'string') {
+            // Replace template variables with fallbacks for missing properties
+            file.source = file.source
+              .replace(/##CANONICAL_URL##/g, siteConfig.canonicalUrl || `https://${siteConfig.domain}`)
+              .replace(/##SITE_NAME##/g, siteConfig.shortTitle)
+              .replace(/##SITE_DESCRIPTION##/g, siteConfig.description)
+              .replace(/##THEME_COLOR##/g, siteConfig.themeColor || '#000000');
+          }
+        }
+      });
     }
   };
 }
@@ -210,11 +244,12 @@ export default defineConfig(() => {
       svgr(),
       transcriptServerPlugin(),
       siteSpecificCssPlugin(),
+      templateReplacementPlugin(),
       {
         name: 'copy-favicon',
         writeBundle() {
           const src = path.resolve(__dirname, 'favicon.ico');
-          const dest = path.resolve(__dirname, 'dist', 'favicon.ico');
+          const dest = path.resolve(__dirname, process.env.BUILD_OUT_DIR || 'dist', 'favicon.ico');
           fs.copyFileSync(src, dest);
         }
       }
@@ -229,7 +264,7 @@ export default defineConfig(() => {
       )
     },
     build: {
-      outDir: 'dist',
+      outDir: process.env.BUILD_OUT_DIR || 'dist',
       assetsDir: 'assets',
       emptyOutDir: true,
     },

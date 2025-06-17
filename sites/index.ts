@@ -125,9 +125,9 @@ export function validateSite(siteId: string): { valid: boolean; errors: string[]
         return { valid: false, errors };
     }
 
-    const envAwsPath = path.join(siteDir, '.env.aws');
+    const envAwsPath = path.join(siteDir, '.env.aws-sso');
     if (!fs.existsSync(envAwsPath)) {
-        errors.push(`Missing .env.aws file for site "${siteId}"`);
+        errors.push(`Missing .env.aws-sso file for site "${siteId}"`);
     }
 
     // Validate site config structure
@@ -164,13 +164,13 @@ export function getSiteDirectory(siteId: string): string | null {
 }
 
 /**
- * Gets the .env.aws file path for a site
+ * Gets the .env.aws-sso file path for a site
  */
 export function getSiteEnvPath(siteId: string): string | null {
     const siteDir = getSiteDirectory(siteId);
     if (!siteDir) return null;
     
-    const envPath = path.join(siteDir, '.env.aws');
+    const envPath = path.join(siteDir, '.env.aws-sso');
     return fs.existsSync(envPath) ? envPath : null;
 }
 

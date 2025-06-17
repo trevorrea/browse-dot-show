@@ -20,7 +20,7 @@
 
 #### 2. Site Configuration Structure (✅ VERIFIED)
 - **Status**: Working correctly
-- **Files**: `sites/origin-sites/*/site.config.json`, `sites/origin-sites/*/.env.aws`
+- **Files**: `sites/origin-sites/*/site.config.json`, `sites/origin-sites/*/.env.aws-sso`
 - **Verification**: All origin sites have proper configuration files
 - **Evidence**: Sites (hardfork, listenfairplay, naddpod, claretandblue) have required config files
 
@@ -167,7 +167,7 @@ pnpm srt-indexing-lambda:run:local
 
 ### [2024-12-19 18:10] - CRITICAL BUG FIX: Environment Parsing
 - **Issue**: Environment file parsing was including comment lines as environment variables (e.g., treating `# Defined here: https://...` as a variable name)
-- **Solution**: Fixed both root `.env.local` and site-specific `.env.aws` parsing to skip comments and empty lines
+- **Solution**: Fixed both root `.env.local` and site-specific `.env.aws-sso` parsing to skip comments and empty lines
 - **Files Modified**: `scripts/utils/site-selector.js` 
 - **Test Result**: READY FOR TESTING - should now parse environment files correctly
 

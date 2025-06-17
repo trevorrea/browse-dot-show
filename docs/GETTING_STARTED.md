@@ -1,6 +1,6 @@
 # browse.show - Getting Started
 
-### **📝 🔍 🎙️ transcribe & search any podcast** 
+### 📝🔍🎙️ transcribe & search any podcast** 
 
 Deploy your own podcast archive and search engine
 <br/>
@@ -56,7 +56,7 @@ Sites are configured in the `sites/` directory:
 
 Each site contains:
 - `site.config.json`: Site configuration and podcast feeds
-- `.env.aws`: AWS deployment credentials
+- `.env.aws-sso`: AWS deployment credentials
 - `index.css`: Optional custom styling
 
 ### Creating Sites
@@ -74,7 +74,7 @@ cd sites/my-sites/my-podcast-site
 
 # Edit configuration files
 vim site.config.json  # Configure site details and podcast feeds
-cp aws.config.template .env.aws  # Set up AWS credentials
+cp aws.config.template .env.aws-sso  # Set up AWS credentials
 ```
 
 ### Site Selection
@@ -154,7 +154,7 @@ DEFAULT_SITE_ID=my-main-site
 SKIP_SITE_SELECTION_PROMPT=false
 ```
 
-**Site-Specific Environment** (`sites/my-sites/{siteId}/.env.aws`):
+**Site-Specific Environment** (`sites/my-sites/{siteId}/.env.aws-sso`):
 ```bash
 # AWS configuration for this specific site
 AWS_PROFILE=MyProfile-123456789012

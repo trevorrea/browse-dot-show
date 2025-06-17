@@ -1,6 +1,7 @@
 {
     "id": "listenfairplay",
     "domain": "listenfairplay.com",
+    "canonicalUrl": "https://listenfairplay.com",
     "shortTitle": "Listen, Fair Play",
     "fullTitle": "Listen, Fair Play",
     "description": "search the Football Clichés record books",
@@ -20,5 +21,6 @@
             "url": "https://feeds.megaphone.fm/tamc1411507018"
         }
     ],
-    "whisperTranscriptionPrompt": "Hello. Welcome to the Football Clichés podcast! We cover footballing language, primarily across the United Kingdom & Europe. I'm yourhost, Adam Hurrey, here with David Walker & Charlie Eccleshare. Let's begin!"
+    "whisperTranscriptionPrompt": "Hello. Welcome to the Football Clichés podcast! We cover footballing language, primarily across the United Kingdom & Europe. I'm yourhost, Adam Hurrey, here with David Walker & Charlie Eccleshare. Let's begin!",
+    "themeColor": "#fdf100"
 }
