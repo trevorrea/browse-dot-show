@@ -175,3 +175,84 @@ Critical environment variables for proper operation:
 3. **Phase 3**: Update constants package for dual-mode operation
 4. **Phase 4**: Verify all Lambda functions have correct env vars
 5. **Phase 5**: End-to-end testing in both local and AWS environments
+
+---
+
+## 🚀 **CURRENT STATUS & PROGRESS REPORT**
+
+### ✅ **COMPLETED: Tasks 1 & 2 (Dec 17, 2024)**
+
+#### Task 1: Analysis & Documentation ✅
+- **Comprehensive analysis** documented above with root cause identification
+- **Architecture understanding** clarified: local needs site prefixing, AWS doesn't
+- **Testing strategy** defined for both environments
+
+#### Task 2: S3 Module Restructuring & Test Foundation ✅
+- **Code restructured**: `packages/s3/index.ts` → `packages/s3/client.ts` + exports
+- **Test suite created**: `packages/s3/client.spec.ts` with 20 comprehensive tests
+- **Local development fixed**: All environment variable handling issues resolved
+- **Test results**: ✅ All 20 tests passing
+
+### 🔍 **KEY FINDINGS FROM TEST IMPLEMENTATION**
+
+#### Issues Discovered & Fixed for Local Development:
+1. **Environment Variable Timing**: `FILE_STORAGE_ENV` was a static constant, preventing test environment changes
+   - **Solution**: Changed to dynamic `getFileStorageEnv()` function
+2. **S3 Client Initialization**: Was trying to initialize AWS credentials even in local mode
+   - **Solution**: Lazy initialization with environment-aware credential handling
+3. **Bucket Name Logic**: Was returning AWS bucket names even in local mode
+   - **Solution**: Return empty string for local environment (no bucket needed)
+
+#### Test Coverage Achieved:
+- ✅ **Local environment**: Fully working with proper site prefixing
+- ✅ **Environment detection**: Dynamic switching between local/AWS modes
+- ✅ **File operations**: Save, retrieve, delete, list, create directories
+- ✅ **Edge cases**: Missing env vars, empty keys, special characters
+- ❌ **AWS environment bugs**: Intentionally demonstrating issues to fix
+
+### 📋 **READY FOR TASK 3: AWS Environment Fixes**
+
+#### Specific Issues to Fix (Confirmed by Tests):
+1. **Bucket Naming Pattern Mismatch**:
+   - Current: `browse-dot-show-hardfork-s3-prod`
+   - Required: `hardfork-browse-dot-show` (to match Terraform)
+
+2. **Constants Package Path Generation**:
+   - Currently: Always returns `sites/{siteId}/search-index/orama_index.msp`
+   - Required: Environment-aware paths (with/without `sites/` prefix)
+
+3. **SITE_ID vs CURRENT_SITE_ID**:
+   - Lambda environment uses `SITE_ID` (from Terraform)
+   - Local development uses `CURRENT_SITE_ID`
+   - Need consistent handling of both
+
+#### Files to Modify in Task 3:
+1. **`packages/s3/client.ts`**:
+   - Fix `getBucketName()` for correct Terraform pattern
+   - Handle both `SITE_ID` and `CURRENT_SITE_ID` environment variables
+
+2. **`packages/constants/index.ts`**:
+   - Make all key generation functions environment-aware
+   - Return different paths for local vs AWS environments
+
+3. **Update tests** to verify fixes work correctly
+
+### 🎯 **IMMEDIATE NEXT STEPS FOR TASK 3**
+
+1. Update `getBucketName()` in `packages/s3/client.ts` to use correct pattern
+2. Update all key generation functions in `packages/constants/index.ts`
+3. Handle dual environment variable naming (`SITE_ID` vs `CURRENT_SITE_ID`)
+4. Update failing test expectations to verify fixes
+5. Test end-to-end with actual Lambda environment variables
+
+### 🔗 **VERIFICATION PLAN**
+
+After Task 3 implementation:
+1. **Unit tests**: All S3 client tests should pass
+2. **Constants tests**: Key generation should work for both environments  
+3. **Integration test**: Deploy search Lambda and verify 403 error is resolved
+4. **Local development**: Ensure no regressions in local workflows
+
+---
+
+**QUESTION FOR USER**: Are you ready to proceed with Task 3 to implement the AWS environment fixes described above?
