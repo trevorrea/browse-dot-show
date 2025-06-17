@@ -41,19 +41,21 @@ function getS3Client(): S3 {
  */
 function getBucketName(): string {
   const fileStorageEnv = getFileStorageEnv();
-  const siteId = process.env.CURRENT_SITE_ID;
+  // Handle both SITE_ID (used in Lambda) and CURRENT_SITE_ID (used in local dev)
+  const siteId = process.env.SITE_ID || process.env.CURRENT_SITE_ID;
   
   // For local environment, return empty string (no bucket needed)
   if (fileStorageEnv === 'local') {
     return '';
   }
   
-  if (siteId && fileStorageEnv === 'prod-s3') {
-    // Site-specific bucket naming: browse-dot-show-{siteId}-s3-prod
-    return `browse-dot-show-${siteId}-s3-prod`;
+  // For AWS environments with site ID, use Terraform bucket naming pattern
+  if (siteId && (fileStorageEnv === 'prod-s3' || fileStorageEnv === 'dev-s3')) {
+    // Match Terraform pattern: ${site_id}-browse-dot-show
+    return `${siteId}-browse-dot-show`;
   }
   
-  // Legacy bucket names for backwards compatibility
+  // Legacy bucket names for backwards compatibility (non-site-aware operations)
   switch (fileStorageEnv) {
     case 'dev-s3':
       return DEV_BUCKET_NAME;

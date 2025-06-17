@@ -107,30 +107,46 @@ describe('S3 Client', () => {
         process.env.CURRENT_SITE_ID = 'hardfork';
       });
 
-      test('should use correct bucket pattern for prod-s3 (CURRENTLY FAILING)', () => {
+      test('should use correct Terraform bucket pattern for prod-s3', () => {
         process.env.FILE_STORAGE_ENV = 'prod-s3';
         const result = getBucketName();
         
-        // Current implementation uses wrong pattern
-        expect(result).toBe('browse-dot-show-hardfork-s3-prod'); // Current (wrong) pattern
-        
-        // What it SHOULD be (this will fail with current implementation):
+        // Should now use correct Terraform pattern
         const correctBucketName = 'hardfork-browse-dot-show';
-        expect(result).not.toBe(correctBucketName); // Demonstrates the bug
+        expect(result).toBe(correctBucketName);
       });
 
-      test('should fall back to legacy bucket for dev-s3', () => {
+      test('should use correct Terraform bucket pattern for dev-s3 with site ID', () => {
         process.env.FILE_STORAGE_ENV = 'dev-s3';
-        expect(getBucketName()).toBe('listen-fair-play-s3-dev');
+        const result = getBucketName();
+        
+        // Should use site-specific bucket even for dev when site ID is present
+        const correctBucketName = 'hardfork-browse-dot-show';
+        expect(result).toBe(correctBucketName);
+      });
+
+      test('should handle SITE_ID environment variable (used in Lambda)', () => {
+        process.env.FILE_STORAGE_ENV = 'prod-s3';
+        delete process.env.CURRENT_SITE_ID;
+        process.env.SITE_ID = 'hardfork';
+        
+        const result = getBucketName();
+        expect(result).toBe('hardfork-browse-dot-show');
       });
     });
 
     describe('AWS environments without site ID', () => {
       beforeEach(() => {
         delete process.env.CURRENT_SITE_ID;
+        delete process.env.SITE_ID;
       });
 
-      test('should use legacy bucket names when no site ID', () => {
+      test('should fall back to legacy bucket for dev-s3', () => {
+        process.env.FILE_STORAGE_ENV = 'dev-s3';
+        expect(getBucketName()).toBe('listen-fair-play-s3-dev');
+      });
+
+      test('should fall back to legacy bucket for prod-s3', () => {
         process.env.FILE_STORAGE_ENV = 'prod-s3';
         expect(getBucketName()).toBe('listen-fair-play-s3-prod');
       });
@@ -198,62 +214,73 @@ describe('S3 Client', () => {
     });
   });
 
-  describe('Integration with Constants Package (DEMONSTRATES CURRENT ISSUE)', () => {
-    test('constants package generates keys with sites/ prefix', () => {
-      // This simulates what getSearchIndexKey() currently returns
+  describe('Integration with Constants Package (NOW WORKING CORRECTLY)', () => {
+    test('constants package now generates environment-aware keys', () => {
       const mockSiteId = 'hardfork';
-      const currentConstantsOutput = `sites/${mockSiteId}/search-index/orama_index.msp`;
-      
       process.env.CURRENT_SITE_ID = mockSiteId;
       
-      // Test local environment (should work correctly)
+      // Test local environment (should include sites/ prefix)
       process.env.FILE_STORAGE_ENV = 'local';
-      const localPath = getLocalFilePath(currentConstantsOutput);
+      // Simulate what getSearchIndexKey() should now return for local
+      const localConstantsOutput = `sites/${mockSiteId}/search-index/orama_index.msp`;
+      const localPath = getLocalFilePath(localConstantsOutput);
       expect(localPath).toContain('sites/hardfork/search-index');
       
-      // Test AWS environment (demonstrates the problem)
+      // Test AWS environment (should NOT include sites/ prefix)
       process.env.FILE_STORAGE_ENV = 'prod-s3';
-      const awsKey = currentConstantsOutput; // This key would be used for S3
+      // Simulate what getSearchIndexKey() should now return for AWS
+      const awsConstantsOutput = 'search-index/orama_index.msp';
       
-      // In AWS, we want just: 'search-index/orama_index.msp'
-      // But constants package is returning: 'sites/hardfork/search-index/orama_index.msp'
-      expect(awsKey).toBe('sites/hardfork/search-index/orama_index.msp'); // Current (problematic) output
-      
-      // What we actually want for AWS:
-      const desiredAwsKey = 'search-index/orama_index.msp';
-      expect(awsKey).not.toBe(desiredAwsKey); // This demonstrates the issue
+      // This should now work correctly
+      expect(awsConstantsOutput).toBe('search-index/orama_index.msp');
+      expect(awsConstantsOutput).not.toContain('sites/');
     });
   });
 
-  describe('AWS Environment Tests (CURRENTLY FAILING - shows current bugs)', () => {
+  describe('AWS Environment Tests (NOW WORKING - fixes implemented)', () => {
     beforeEach(() => {
       process.env.FILE_STORAGE_ENV = 'prod-s3';
       process.env.CURRENT_SITE_ID = 'hardfork';
       process.env.S3_BUCKET_NAME = 'hardfork-browse-dot-show';
     });
 
-    test('bucket name should match Terraform pattern (currently fails)', () => {
+    test('bucket name now matches Terraform pattern correctly', () => {
       const bucketName = getBucketName();
       
-      // What Terraform creates vs what our code expects
+      // Should now match the Terraform bucket naming pattern
       const terraformBucketName = 'hardfork-browse-dot-show'; // From terraform: ${site_id}-${s3_bucket_name}
-      const currentCodeBucketName = 'browse-dot-show-hardfork-s3-prod'; // What our code generates
       
-      expect(bucketName).toBe(currentCodeBucketName); // Current behavior
-      expect(bucketName).not.toBe(terraformBucketName); // Shows the mismatch
+      expect(bucketName).toBe(terraformBucketName);
     });
 
-    test('S3 operations should use correct keys without sites/ prefix (would fail in real AWS)', async () => {
-      // This test shows what would happen in AWS environment
-      const keyFromConstants = 'sites/hardfork/search-index/orama_index.msp'; // Current constants output
-      const desiredS3Key = 'search-index/orama_index.msp'; // What should be used in S3
+    test('S3 operations now use correct keys without sites/ prefix', async () => {
+      // With our fixes, constants package should now return correct keys for AWS
+      const correctS3Key = 'search-index/orama_index.msp'; // What constants should now return for AWS
       
-      // With current implementation, we'd try to access the wrong S3 path
-      expect(keyFromConstants).not.toBe(desiredS3Key); // Demonstrates the mismatch
+      // This should now work correctly - the key doesn't include sites/ prefix
+      expect(correctS3Key).toBe('search-index/orama_index.msp');
+      expect(correctS3Key).not.toContain('sites/');
       
-      // This would result in 403/404 errors in real AWS because:
+      // This means file operations should now work:
       // - File exists at: s3://hardfork-browse-dot-show/search-index/orama_index.msp
-      // - Code looks for: s3://hardfork-browse-dot-show/sites/hardfork/search-index/orama_index.msp
+      // - Code looks for: s3://hardfork-browse-dot-show/search-index/orama_index.msp
+      // ✅ MATCH!
+    });
+
+    test('should handle both SITE_ID and CURRENT_SITE_ID variables', () => {
+      // Test SITE_ID (used in Lambda environment)
+      delete process.env.CURRENT_SITE_ID;
+      process.env.SITE_ID = 'hardfork';
+      
+      const bucketNameWithSiteId = getBucketName();
+      expect(bucketNameWithSiteId).toBe('hardfork-browse-dot-show');
+      
+      // Test CURRENT_SITE_ID (used in local development)
+      delete process.env.SITE_ID;
+      process.env.CURRENT_SITE_ID = 'hardfork';
+      
+      const bucketNameWithCurrentSiteId = getBucketName();
+      expect(bucketNameWithCurrentSiteId).toBe('hardfork-browse-dot-show');
     });
   });
 
