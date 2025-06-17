@@ -61,15 +61,13 @@ cd ..
 
 echo "Building client with search API URL: $SEARCH_API_URL"
 echo "Building client with manifest base URL: $S3_HOSTED_FILES_BASE_URL"
-cd packages/client
+
 export VITE_SEARCH_API_URL="$SEARCH_API_URL"
 export VITE_S3_HOSTED_FILES_BASE_URL="$S3_HOSTED_FILES_BASE_URL"
 export SITE_ID="$SITE_ID"
 
-# CURSOR-TODO - replace build:site with building all sites, and pulling out the correct one
-# pnpm build:site
-
-cd ../..
+# CURSOR-TODO: *potentially* switch this to only build the specific site
+pnpm client:build:all-sites
 
 echo "Uploading client files to S3 bucket: $BUCKET_NAME"
 echo "CloudFront domain: $CLOUDFRONT_DOMAIN"
