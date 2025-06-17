@@ -4,8 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "echo 'TODO: implement site-specific build'",
-    "build:site": "tsc -b && vite build",
+    "build:all-sites": "node build-all-sites.js",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "test": "vitest run",
     "test:watch": "vitest",

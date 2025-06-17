@@ -16,7 +16,7 @@ This directory is where you create and configure your own podcast archive sites.
 
 3. **Configure your site**: Edit the configuration files in your new site directory
 
-4. **Set up AWS credentials**: Create your `.env.aws` file with your AWS profile
+4. **Set up AWS credentials**: Create your `.env.aws-sso` file with your AWS profile
 
 5. **Deploy**: Run the deployment commands to get your site live
 
@@ -27,7 +27,7 @@ Each site directory must contain:
 ```
 your-site-name/
 ├── site.config.json    # Site configuration and podcast feeds
-├── .env.aws           # AWS deployment credentials
+├── .env.aws-sso           # AWS deployment credentials
 └── index.css          # (Optional) Custom styling
 ```
 
@@ -71,7 +71,7 @@ This is the main configuration file for your site:
 - `status`: Either "active" or "inactive"
 - `url`: RSS feed URL
 
-### .env.aws
+### .env.aws-sso
 
 Contains your AWS deployment configuration:
 
@@ -161,6 +161,6 @@ The `index.css` file allows you to customize your site's appearance:
 
 ### AWS Account Separation
 Each site can be deployed to a completely separate AWS account:
-- Configure different AWS profiles in each site's `.env.aws`
+- Configure different AWS profiles in each site's `.env.aws-sso`
 - Terraform state is automatically isolated per site
 - No resource name conflicts between accounts

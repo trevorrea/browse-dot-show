@@ -17,7 +17,7 @@ try {
     process.exit(1);
 }
 
-// Load environment variables from site-specific .env.aws file
+// Load environment variables from site-specific .env.aws-sso file
 function loadSiteEnvFile(siteId) {
     // First load general .env.local for shared settings
     const localEnvFile = path.join(process.cwd(), '.env.local');
@@ -32,13 +32,13 @@ function loadSiteEnvFile(siteId) {
         });
     }
 
-    // Then load site-specific .env.aws file
+    // Then load site-specific .env.aws-sso file
     const siteConfig = getSiteById(siteId);
     if (!siteConfig || !siteConfig.path) {
         throw new Error(`Site configuration not found for: ${siteId}`);
     }
 
-    const siteAwsEnvFile = path.join(siteConfig.path, '.env.aws');
+    const siteAwsEnvFile = path.join(siteConfig.path, '.env.aws-sso');
     if (fs.existsSync(siteAwsEnvFile)) {
         console.log(`Loading site-specific AWS configuration from: ${siteAwsEnvFile}`);
         const envContent = fs.readFileSync(siteAwsEnvFile, 'utf8');
@@ -49,7 +49,7 @@ function loadSiteEnvFile(siteId) {
             }
         });
     } else {
-        throw new Error(`Site-specific .env.aws file not found: ${siteAwsEnvFile}`);
+        throw new Error(`Site-specific .env.aws-sso file not found: ${siteAwsEnvFile}`);
     }
 }
 
@@ -206,8 +206,8 @@ async function main() {
 
         // Check AWS SSO authentication
         if (!process.env.AWS_PROFILE) {
-            console.log('❌ AWS_PROFILE is not set in the site-specific .env.aws file.');
-            console.log('  Please ensure the site .env.aws file contains: AWS_PROFILE=your_profile_name');
+            console.log('❌ AWS_PROFILE is not set in the site-specific .env.aws-sso file.');
+            console.log('  Please ensure the site .env.aws-sso file contains: AWS_PROFILE=your_profile_name');
             console.log('  If you haven\'t configured an SSO profile, run \'aws configure sso\'.');
             process.exit(1);
         }

@@ -32,15 +32,15 @@ else
     exit 1
 fi
 
-# Check if .env.aws exists
-if [ ! -f "$SITE_DIR/.env.aws" ]; then
-    echo "Error: .env.aws file not found for site '$SITE_ID' at $SITE_DIR/.env.aws"
+# Check if .env.aws-sso exists
+if [ ! -f "$SITE_DIR/.env.aws-sso" ]; then
+    echo "Error: .env.aws-sso file not found for site '$SITE_ID' at $SITE_DIR/.env.aws-sso"
     exit 1
 fi
 
 echo "🏗️  Building lambda '$LAMBDA_PACKAGE_NAME' for site '$SITE_ID'"
 echo "📁 Using site directory: $SITE_DIR"
-echo "🌐 Using environment file: $SITE_DIR/.env.aws"
+echo "🌐 Using environment file: $SITE_DIR/.env.aws-sso"
 
 # Set CURRENT_SITE_ID and build with site's environment
 export CURRENT_SITE_ID=$SITE_ID
@@ -57,6 +57,6 @@ echo "📦 Lambda directory: $LAMBDA_DIR"
 cd "$LAMBDA_DIR"
 
 # Run the build with the site's AWS environment
-dotenvx run -f "../../../$SITE_DIR/.env.aws" -- rolldown -c rolldown.config.ts && pnpm __prepare-for-aws
+dotenvx run -f "../../../$SITE_DIR/.env.aws-sso" -- rolldown -c rolldown.config.ts && pnpm __prepare-for-aws
 
 echo "✅ Lambda '$LAMBDA_PACKAGE_NAME' built successfully for site '$SITE_ID'" 

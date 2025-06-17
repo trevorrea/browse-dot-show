@@ -28,10 +28,8 @@ output "search_api_invoke_url" {
   value       = aws_apigatewayv2_stage.search_api_stage.invoke_url
 }
 
-output "terraform_state_bucket_name" {
-  description = "The name of the S3 bucket used for storing Terraform state."
-  value       = aws_s3_bucket.terraform_state.bucket
-}
+# Note: Terraform state bucket is managed by bootstrap script, not terraform
+# Bucket name follows pattern: {site_id}-terraform-state
 
 output "search_lambda_function_name" {
   description = "Name of the Search Lambda function"

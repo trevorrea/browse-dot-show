@@ -13,6 +13,8 @@ export interface SiteConfig {
     id: string;
     /** e.g. `mypodcast.browse.show` or `listenfairplay.com` (the latter being the first such site created by browse-dot-show) */
     domain: string;
+    /** e.g. `https://mypodcast.browse.show` or `https://listenfairplay.com` (full URL) */
+    canonicalUrl: string;
     shortTitle: string;
     fullTitle: string;
     description: string;
@@ -30,6 +32,9 @@ export interface SiteConfig {
      * @example `Hi, I'm HostA, here with HostB, and this is the Example Podcast! Welcome, let's get started.`
      */
     whisperTranscriptionPrompt: string;
+
+    /** e.g. `#fdf100` */
+    themeColor: string;
 
     // TODO: We will likely add additional customization options, including - perhaps - certain React component files
 }

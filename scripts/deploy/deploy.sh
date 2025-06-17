@@ -90,12 +90,7 @@ async function main() {
 
         // Site-specific Terraform configuration
         const TF_DIR = "terraform";
-        const TF_STATE_FILENAME = `terraform-${SITE_ID}.tfstate`;
-        const TF_STATE_BUCKET = `${SITE_ID}-terraform-state-${ENV}`;
-
-        // Variables to be exported for use by manage-tfstate.sh
-        process.env.TF_STATE_FILENAME = TF_STATE_FILENAME;
-        process.env.S3_TFSTATE_URI = `s3://${TF_STATE_BUCKET}/${TF_STATE_FILENAME}`;
+        const BACKEND_CONFIG_FILE = `backend-configs/${SITE_ID}.tfbackend`;
 
         // Run prerequisite check
         console.log('Running prerequisite checks...');
@@ -172,22 +167,13 @@ async function main() {
         console.log(`Navigating to Terraform directory: ${TF_DIR}`);
         process.chdir(TF_DIR);
 
-        // --- Terraform State Sync ---
-        console.log('Comparing Terraform states...');
-        // Set all required environment variables and source the script in the correct context
-        const manageTfStateCmd = `
-            export TF_STATE_FILENAME="${TF_STATE_FILENAME}"
-            export S3_TFSTATE_URI="${process.env.S3_TFSTATE_URI}"
-            export AWS_PROFILE="${process.env.AWS_PROFILE || ''}"
-            export AWS_REGION="${process.env.AWS_REGION}"
-            source ../scripts/deploy/manage-tfstate.sh
-            compare_tf_states
-        `;
-        await runCommand('bash', ['-c', manageTfStateCmd]);
+        // Bootstrap terraform state bucket if needed
+        console.log('Bootstrapping Terraform state bucket...');
+        await runCommand('../scripts/deploy/bootstrap-terraform-state.sh', [SITE_ID, process.env.AWS_PROFILE || '']);
 
-        // Initialize Terraform (if needed)
-        console.log('Initializing Terraform...');
-        await runCommand('terraform', ['init']);
+        // Initialize Terraform with site-specific backend config
+        console.log(`Initializing Terraform with backend config: ${BACKEND_CONFIG_FILE}`);
+        await runCommand('terraform', ['init', '-backend-config', BACKEND_CONFIG_FILE, '-reconfigure']);
 
         // Validate Terraform configuration
         console.log('Validating Terraform configuration...');
@@ -217,17 +203,7 @@ async function main() {
             await runCommand('terraform', ['apply', '-auto-approve', 'tfplan']);
             
             console.log('Terraform apply completed.');
-            
-            // Upload state backup
-            const uploadStateCmd = `
-                export TF_STATE_FILENAME="${TF_STATE_FILENAME}"
-                export S3_TFSTATE_URI="${process.env.S3_TFSTATE_URI}"
-                export AWS_PROFILE="${process.env.AWS_PROFILE || ''}"
-                export AWS_REGION="${process.env.AWS_REGION}"
-                source ../scripts/deploy/manage-tfstate.sh
-                upload_tf_state_backup
-            `;
-            await runCommand('bash', ['-c', uploadStateCmd]);
+            console.log('State is automatically managed by S3 backend.');
 
             // Display outputs
             console.log('======= Deployment Complete =======');

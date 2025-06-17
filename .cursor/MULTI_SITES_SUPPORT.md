@@ -84,7 +84,7 @@ Expecially important:
    - Stored in each site's directory (e.g., `sites/origin-sites/listenfairplay/.env`)?
    - Merged into root `.env.dev`/`.env.prod` with site prefixes?
    - Passed through command-line arguments?
-   - **Answer**: Stored in each site's directory. Plan is for these to be called `sites/origin-sites/{siteID}/.env.aws`. The root `.env` file can still have values that are shared across all sites - good example is `LOG_LEVEL=` and `WHISPER_API_PROVIDER=` and `OPENAI_API_KEY=`
+   - **Answer**: Stored in each site's directory. Plan is for these to be called `sites/origin-sites/{siteID}/.env.aws-sso`. The root `.env` file can still have values that are shared across all sites - good example is `LOG_LEVEL=` and `WHISPER_API_PROVIDER=` and `OPENAI_API_KEY=`
 
    For reference: see `/Users/jackkoppa/Personal_Development/browse-dot-show/.cursor/EXAMPLES_OF_ENV_FILES.md` for what current .env files do.
 
@@ -114,11 +114,6 @@ pnpm rss-retrieval-lambda:run:local  # Run RSS ingestion locally
 # Deploy a site to production  
 pnpm all:deploy                  # Deploy site infrastructure (prompts for site)
 
-# Build and run site-specific lambdas
-cd packages/ingestion/rss-retrieval-lambda
-pnpm build:site listenfairplay   # Build lambda for specific site
-pnpm run:site listenfairplay     # Run lambda for specific site
-
 # Trigger production lambdas
 pnpm trigger:ingestion-lambda    # Trigger deployed lambdas (prompts for site)
 ```
@@ -140,7 +135,7 @@ pnpm trigger:ingestion-lambda    # Trigger deployed lambdas (prompts for site)
 1. ✅ Create site discovery service that prioritizes `/sites/my-sites/` over `/sites/origin-sites/`
 2. ✅ Add CLI prompting for site selection in all scripts (with DEFAULT_SITE_ID pre-selected)
 3. ✅ Support `SKIP_SITE_SELECTION_PROMPT=true` to bypass prompting
-4. ✅ Create site validation (ensure site config exists, `.env.aws` exists, AWS profile is valid)
+4. ✅ Create site validation (ensure site config exists, `.env.aws-sso` exists, AWS profile is valid)
 5. ✅ Create reusable site selection utility for consistent UX across all scripts
 
 ### Phase 2: Terraform Multi-Site Support ✅
@@ -159,7 +154,7 @@ pnpm trigger:ingestion-lambda    # Trigger deployed lambdas (prompts for site)
 1. ✅ Make ALL AWS resources site-specific: S3 buckets, Lambda names (search, process-audio, rss-retrieval, srt-indexing), CloudFront distributions
 2. ✅ Implement site-specific Terraform state management (separate `.tfstate` files per site)
 3. ✅ Add site tagging to all AWS resources for cost tracking and organization
-4. ✅ Support multiple AWS profiles/accounts through site-specific `.env.aws` files
+4. ✅ Support multiple AWS profiles/accounts through site-specific `.env.aws-sso` files
 5. ✅ Ensure complete infrastructure isolation between sites (even in same AWS account)
 6. ✅ Remove dev/prod environment distinction in favor of site-specific deployments
 
@@ -212,7 +207,7 @@ pnpm trigger:ingestion-lambda    # Trigger deployed lambdas (prompts for site)
 - ✅ **Site-Specific Local Structure**: `aws-local-dev/s3/sites/{siteId}/` with full directory hierarchy (audio, transcripts, search-entries, etc.)
 - ✅ **Asset Serving**: Dynamic asset serving from site-specific directories with legacy fallback
 - ✅ **Lambda Triggering**: Site selection + site-specific lambda names (e.g., `retrieve-rss-feeds-{siteId}`)
-- ✅ **Environment Loading**: Combines shared `.env.local` with site-specific `.env.aws` files
+- ✅ **Environment Loading**: Combines shared `.env.local` with site-specific `.env.aws-sso` files
 - ✅ **Legacy Migration**: Automated migration of existing data to site-specific structure
 - ✅ **Complete Isolation**: Local development mirrors production site isolation perfectly
 
@@ -282,9 +277,9 @@ cat README.md
 
 1. **No Backwards Compatibility**: ALL operations require explicit site selection going forward - treat listenfairplay like any other site
 2. **Complete Site Isolation**: Ensure total isolation between sites (separate S3 buckets, terraform state, lambda instances, data paths)
-3. **Environment Variable Strategy**: Site-specific `.env.aws` files + shared root `.env` for common values (LOG_LEVEL, OPENAI_API_KEY, etc.)
+3. **Environment Variable Strategy**: Site-specific `.env.aws-sso` files + shared root `.env` for common values (LOG_LEVEL, OPENAI_API_KEY, etc.)
 4. **Build-time Configuration**: All client builds are site-specific with config baked in at build time
-5. **AWS Profile Management**: Each site specifies its AWS profile in `.env.aws` for multi-account support
+5. **AWS Profile Management**: Each site specifies its AWS profile in `.env.aws-sso` for multi-account support
 6. **Site Discovery Logic**: Prioritize `/sites/my-sites/` over `/sites/origin-sites/` (allows overriding origin sites)
 7. **Minimal Downtime**: Existing listenfairplay.com should continue working during migration with careful terraform state management
 8. **🆕 Single Environment Per Site**: Each site deploys only to prod - no dev/prod infrastructure split

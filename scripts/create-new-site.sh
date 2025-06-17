@@ -196,9 +196,9 @@ main() {
 }
 EOF
     
-    # Create .env.aws
-    print_info "Creating .env.aws"
-    cat > "$SITE_DIR/.env.aws" << EOF
+    # Create .env.aws-sso
+    print_info "Creating .env.aws-sso"
+    cat > "$SITE_DIR/.env.aws-sso" << EOF
 # AWS Configuration for $SITE_ID
 AWS_PROFILE=$AWS_PROFILE
 AWS_REGION=$AWS_REGION

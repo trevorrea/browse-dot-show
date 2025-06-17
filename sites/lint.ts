@@ -1,7 +1,7 @@
 // CURSOR-TODO: Add linting for sites, to confirm things like:
 // - all site.config.json files contain all required fields from the SiteConfig interface, in ./types.ts
-// - all sites have valide .env.aws files
-//    - for all AWS_PROFILE .env.aws values, confirm that SSO is configured for that profile via AWS CLI
+// - all sites have valide .env.aws-sso files
+//    - for all AWS_PROFILE .env.aws-sso values, confirm that SSO is configured for that profile via AWS CLI
 // - all sites have a valid index.css file
 
 import fs from 'fs';
@@ -84,13 +84,16 @@ function validateSiteConfiguration(site: SiteConfig): ValidationResult {
     // 2. Validate site.config.json structure
     validateSiteConfigStructure(site, result);
     
-    // 3. Validate .env.aws file
+    // 3. Validate .env.aws-sso file
     validateEnvAwsFile(site, result);
     
     // 4. Validate index.css file
     validateSiteStyling(site, result);
+
+    // 5. Validate /assets directory
+    validateAssetsDirectory(site, result);
     
-    // 5. Validate terraform .tfvars file exists
+    // 6. Validate terraform .tfvars file exists
     validateTerraformConfig(site, result);
     
     return result;
@@ -109,6 +112,10 @@ function validateSiteConfigStructure(site: SiteConfig, result: ValidationResult)
         result.errors.push('Missing required field: domain');
     }
     
+    if (!site.canonicalUrl) {
+        result.errors.push('Missing required field: canonicalUrl');
+    }
+    
     if (!site.shortTitle) {
         result.errors.push('Missing required field: shortTitle');
     }
@@ -123,6 +130,10 @@ function validateSiteConfigStructure(site: SiteConfig, result: ValidationResult)
     
     if (!site.whisperTranscriptionPrompt) {
         result.errors.push('Missing required field: whisperTranscriptionPrompt');
+    }
+    
+    if (!site.themeColor) {
+        result.errors.push('Missing required field: themeColor');
     }
     
     if (!site.includedPodcasts || site.includedPodcasts.length === 0) {
@@ -150,18 +161,18 @@ function validateSiteConfigStructure(site: SiteConfig, result: ValidationResult)
 }
 
 /**
- * Validates .env.aws file exists and has proper structure
+ * Validates .env.aws-sso file exists and has proper structure
  */
 function validateEnvAwsFile(site: SiteConfig, result: ValidationResult): void {
     const siteDir = getSiteDirectory(site.id);
     if (!siteDir) {
-        result.errors.push('.env.aws validation skipped - site directory not found');
+        result.errors.push('.env.aws-sso validation skipped - site directory not found');
         return;
     }
     
-    const envAwsPath = path.join(siteDir, '.env.aws');
+    const envAwsPath = path.join(siteDir, '.env.aws-sso');
     if (!fs.existsSync(envAwsPath)) {
-        result.errors.push('Missing .env.aws file');
+        result.errors.push('Missing .env.aws-sso file');
         return;
     }
     
@@ -171,14 +182,14 @@ function validateEnvAwsFile(site: SiteConfig, result: ValidationResult): void {
         
         const hasAwsProfile = lines.some(line => line.startsWith('AWS_PROFILE='));
         if (!hasAwsProfile) {
-            result.errors.push('.env.aws file missing AWS_PROFILE setting');
+            result.errors.push('.env.aws-sso file missing AWS_PROFILE setting');
         }
         
         // TODO: Validate that AWS_PROFILE is configured in AWS CLI
         // This would require running `aws configure list-profiles` and checking
         
     } catch (error) {
-        result.errors.push(`Error reading .env.aws file: ${error}`);
+        result.errors.push(`Error reading .env.aws-sso file: ${error}`);
     }
 }
 
@@ -195,6 +206,64 @@ function validateSiteStyling(site: SiteConfig, result: ValidationResult): void {
     const cssPath = path.join(siteDir, 'index.css');
     if (!fs.existsSync(cssPath)) {
         result.warnings.push('Missing index.css file for site-specific styling');
+    }
+}
+
+/**
+ * Validates that /assets directory contains all required files
+ */
+function validateAssetsDirectory(site: SiteConfig, result: ValidationResult): void {
+    const siteDir = getSiteDirectory(site.id);
+    if (!siteDir) {
+        result.warnings.push('Assets validation skipped - site directory not found');
+        return;
+    }
+    
+    const assetsDir = path.join(siteDir, 'assets');
+    
+    // Define expected asset files
+    const requiredAssetFiles = [
+        'apple-touch-icon.png',
+        'favicon-96x96.png', 
+        'favicon.ico',
+        'favicon.svg',
+        'simple-alert.mp3',
+        'site.webmanifest',
+        'web-app-manifest-192x192.png',
+        'web-app-manifest-512x512.png'
+    ];
+    
+    // Check if assets directory exists
+    if (!fs.existsSync(assetsDir)) {
+        result.warnings.push('Missing /assets directory');
+        result.warnings.push(`Expected assets directory at: ${assetsDir}`);
+        result.warnings.push(`Should contain files: ${requiredAssetFiles.join(', ')}`);
+        return;
+    }
+    
+    // Check each required file
+    const missingFiles: string[] = [];
+    for (const fileName of requiredAssetFiles) {
+        const filePath = path.join(assetsDir, fileName);
+        if (!fs.existsSync(filePath)) {
+            missingFiles.push(fileName);
+        }
+    }
+    
+    if (missingFiles.length > 0) {
+        result.warnings.push(`Missing asset files: ${missingFiles.join(', ')}`);
+    }
+    
+    // Check for unexpected files (files that exist but aren't in our expected list)
+    try {
+        const actualFiles = fs.readdirSync(assetsDir);
+        const unexpectedFiles = actualFiles.filter(file => !requiredAssetFiles.includes(file));
+        
+        if (unexpectedFiles.length > 0) {
+            result.warnings.push(`Unexpected files in /assets directory: ${unexpectedFiles.join(', ')}`);
+        }
+    } catch (error) {
+        result.warnings.push(`Error reading /assets directory: ${error}`);
     }
 }
 
