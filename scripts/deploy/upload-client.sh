@@ -13,7 +13,7 @@ if [ -z "$SITE_ID" ]; then
   exit 1
 fi
 
-# Source environment variables
+# Source environment variables (shared and site-specific)
 if [ -f ".env.prod" ]; then
   echo "Loading environment variables from .env.prod"
   source ".env.prod"
@@ -22,9 +22,19 @@ else
   exit 1
 fi
 
+# Load site-specific environment variables
+SITE_ENV_FILE="sites/origin-sites/${SITE_ID}/.env.aws-sso"
+if [ -f "$SITE_ENV_FILE" ]; then
+  echo "Loading site-specific environment variables from $SITE_ENV_FILE"
+  source "$SITE_ENV_FILE"
+else
+  echo "Error: Site-specific environment file not found: $SITE_ENV_FILE"
+  exit 1
+fi
+
 # Validate AWS profile
 if [ -z "$AWS_PROFILE" ]; then
-  echo "Error: AWS_PROFILE is not set in .env.prod"
+  echo "Error: AWS_PROFILE is not set in environment files"
   exit 1
 fi
 
@@ -64,24 +74,35 @@ cd ../..
 echo "Uploading client files to S3 bucket: $BUCKET_NAME"
 echo "CloudFront domain: $CLOUDFRONT_DOMAIN"
 
+# Site-specific dist directory
+CLIENT_DIST_DIR="packages/client/dist-${SITE_ID}"
+
 # Check if source files exist
-if [ ! -f "packages/client/dist/index.html" ]; then
-  echo "Error: packages/client/dist/index.html not found"
+if [ ! -f "${CLIENT_DIST_DIR}/index.html" ]; then
+  echo "Error: ${CLIENT_DIST_DIR}/index.html not found"
+  echo "Make sure you've run the client build for site: $SITE_ID"
   exit 1
 fi
 
-if [ ! -d "packages/client/dist/assets" ]; then
-  echo "Error: packages/client/dist/assets directory not found"
+if [ ! -d "${CLIENT_DIST_DIR}/assets" ]; then
+  echo "Error: ${CLIENT_DIST_DIR}/assets directory not found"
+  echo "Make sure you've run the client build for site: $SITE_ID"
   exit 1
 fi
 
 # Upload index.html to root
-echo "Uploading index.html..."
-aws s3 cp packages/client/dist/index.html s3://$BUCKET_NAME/index.html --profile "$AWS_PROFILE"
+echo "Uploading index.html from ${CLIENT_DIST_DIR}..."
+aws s3 cp "${CLIENT_DIST_DIR}/index.html" s3://$BUCKET_NAME/index.html --profile "$AWS_PROFILE"
+
+# Upload favicon.ico to root (if it exists)
+if [ -f "${CLIENT_DIST_DIR}/favicon.ico" ]; then
+  echo "Uploading favicon.ico from ${CLIENT_DIST_DIR}..."
+  aws s3 cp "${CLIENT_DIST_DIR}/favicon.ico" s3://$BUCKET_NAME/favicon.ico --profile "$AWS_PROFILE"
+fi
 
 # Upload assets directory (this will delete old assets but preserve other bucket contents)
-echo "Uploading assets directory..."
-aws s3 sync packages/client/dist/assets/ s3://$BUCKET_NAME/assets/ --delete --profile "$AWS_PROFILE"
+echo "Uploading assets directory from ${CLIENT_DIST_DIR}..."
+aws s3 sync "${CLIENT_DIST_DIR}/assets/" s3://$BUCKET_NAME/assets/ --delete --profile "$AWS_PROFILE"
 
 # Invalidate CloudFront cache for specific client files only
 echo "Invalidating CloudFront cache for client files..."
