@@ -1,19 +1,37 @@
 // CURSOR-TODO: We need to update the name of this package, since they're no longer strictly constants.
 
+/**
+ * Get the current site ID from environment variables
+ * Handles both SITE_ID (used in Lambda) and CURRENT_SITE_ID (used in local dev)
+ */
 function getSiteId(): string {
-  const siteId = process.env.CURRENT_SITE_ID;
+  const siteId = process.env.SITE_ID || process.env.CURRENT_SITE_ID;
   if (!siteId) {
-    throw new Error('CURRENT_SITE_ID environment variable is required');
+    throw new Error('SITE_ID or CURRENT_SITE_ID environment variable is required');
   }
   return siteId;
 }
 
+/**
+ * Check if we're running in local development environment
+ */
+function isLocalEnvironment(): boolean {
+  return (process.env.FILE_STORAGE_ENV || 'dev-s3') === 'local';
+}
+
 /** 
- * Get site-aware S3 key for the Orama search index file
+ * Get environment-aware S3 key for the Orama search index file
+ * - Local: sites/{siteId}/search-index/orama_index.msp (needs site disambiguation)
+ * - AWS: search-index/orama_index.msp (bucket is already site-specific)
  */
 export function getSearchIndexKey(): string {
-  const siteId = getSiteId();
-  return `sites/${siteId}/search-index/orama_index.msp`;
+  if (isLocalEnvironment()) {
+    const siteId = getSiteId();
+    return `sites/${siteId}/search-index/orama_index.msp`;
+  } else {
+    // In AWS, bucket is already site-specific
+    return `search-index/orama_index.msp`;
+  }
 }
 
 /** 
@@ -26,51 +44,87 @@ export function getLocalDbPath(): string {
 }
 
 /** 
- * Get site-aware episode manifest key
+ * Get environment-aware episode manifest key
+ * - Local: sites/{siteId}/episode-manifest/full-episode-manifest.json
+ * - AWS: episode-manifest/full-episode-manifest.json
  */
 export function getEpisodeManifestKey(): string {
-  const siteId = getSiteId();
-  return `sites/${siteId}/episode-manifest/full-episode-manifest.json`;
+  if (isLocalEnvironment()) {
+    const siteId = getSiteId();
+    return `sites/${siteId}/episode-manifest/full-episode-manifest.json`;
+  } else {
+    return `episode-manifest/full-episode-manifest.json`;
+  }
 }
 
 /** 
- * Get site-aware audio directory prefix
+ * Get environment-aware audio directory prefix
+ * - Local: sites/{siteId}/audio/
+ * - AWS: audio/
  */
 export function getAudioDirPrefix(): string {
-  const siteId = getSiteId();
-  return `sites/${siteId}/audio/`;
+  if (isLocalEnvironment()) {
+    const siteId = getSiteId();
+    return `sites/${siteId}/audio/`;
+  } else {
+    return `audio/`;
+  }
 }
 
 /** 
- * Get site-aware transcripts directory prefix
+ * Get environment-aware transcripts directory prefix
+ * - Local: sites/{siteId}/transcripts/
+ * - AWS: transcripts/
  */
 export function getTranscriptsDirPrefix(): string {
-  const siteId = getSiteId();
-  return `sites/${siteId}/transcripts/`;
+  if (isLocalEnvironment()) {
+    const siteId = getSiteId();
+    return `sites/${siteId}/transcripts/`;
+  } else {
+    return `transcripts/`;
+  }
 }
 
 /** 
- * Get site-aware RSS directory prefix
+ * Get environment-aware RSS directory prefix
+ * - Local: sites/{siteId}/rss/
+ * - AWS: rss/
  */
 export function getRSSDirectoryPrefix(): string {
-  const siteId = getSiteId();
-  return `sites/${siteId}/rss/`;
+  if (isLocalEnvironment()) {
+    const siteId = getSiteId();
+    return `sites/${siteId}/rss/`;
+  } else {
+    return `rss/`;
+  }
 }
 
 /** 
- * Get site-aware search entries directory prefix
+ * Get environment-aware search entries directory prefix
+ * - Local: sites/{siteId}/search-entries/
+ * - AWS: search-entries/
  */
 export function getSearchEntriesDirPrefix(): string {
-  const siteId = getSiteId();
-  return `sites/${siteId}/search-entries/`;
+  if (isLocalEnvironment()) {
+    const siteId = getSiteId();
+    return `sites/${siteId}/search-entries/`;
+  } else {
+    return `search-entries/`;
+  }
 }
 
 /** 
- * Get site-aware episode manifest directory prefix
+ * Get environment-aware episode manifest directory prefix
+ * - Local: sites/{siteId}/episode-manifest/
+ * - AWS: episode-manifest/
  */
 export function getEpisodeManifestDirPrefix(): string {
-  const siteId = getSiteId();
-  return `sites/${siteId}/episode-manifest/`;
+  if (isLocalEnvironment()) {
+    const siteId = getSiteId();
+    return `sites/${siteId}/episode-manifest/`;
+  } else {
+    return `episode-manifest/`;
+  }
 }
 
 
