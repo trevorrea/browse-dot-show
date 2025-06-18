@@ -1,0 +1,1 @@
+export { generateFavicon } from './generateFavicon.js';

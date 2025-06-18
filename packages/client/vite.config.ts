@@ -10,7 +10,6 @@ import { log } from './src/utils/logging';
 
 // Import site loading utilities - using relative path for monorepo
 import { getSiteById, getSiteDirectory } from '../../sites/dist/index.js';
-import type { SiteConfig } from '../../sites/types.js';
 
 // Function to load site configuration and create environment variables
 function loadSiteConfig() {
@@ -109,24 +108,24 @@ function siteSpecificCssPlugin() {
 function templateReplacementPlugin() {
   return {
     name: 'template-replacement',
-    generateBundle(options: any, bundle: any) {
+    async generateBundle(options: any, bundle: any) {
       const siteConfig = getSiteConfig();
       if (!siteConfig) return;
 
+      // Import shared template replacement functions
+      const { replaceTemplateVariables, generateFaviconForSite } = await import('./build-utils/template-replacement.js');
+
       // Find the HTML file in the bundle
-      Object.keys(bundle).forEach(fileName => {
+      for (const fileName of Object.keys(bundle)) {
         if (fileName.endsWith('.html')) {
           const file = bundle[fileName];
           if (file.type === 'asset' && typeof file.source === 'string') {
-            // Replace template variables with fallbacks for missing properties
-            file.source = file.source
-              .replace(/##CANONICAL_URL##/g, siteConfig.canonicalUrl || `https://${siteConfig.domain}`)
-              .replace(/##SITE_NAME##/g, siteConfig.shortTitle)
-              .replace(/##SITE_DESCRIPTION##/g, siteConfig.description)
-              .replace(/##THEME_COLOR##/g, siteConfig.themeColor || '#000000');
+            // Generate favicon HTML and replace all template variables
+            const faviconResult = await generateFaviconForSite(siteConfig.id);
+            file.source = replaceTemplateVariables(file.source, siteConfig, faviconResult.html);
           }
         }
-      });
+      }
     }
   };
 }
