@@ -5,11 +5,11 @@
  * Takes ffmpeg-release-arm64-static.tar.xz and creates ffmpeg-layer.zip
  */
 
-import { join, dirname } from 'path';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { execCommandOrThrow, execCommand } from '../../scripts/utils/shell-exec.js';
-import { exists, removeDir, ensureDir } from '../../scripts/utils/file-operations.js';
-import { printInfo, printError, printSuccess, printWarning, logHeader } from '../../scripts/utils/logging.js';
+import { execCommand, execCommandOrThrow } from '../../scripts/utils/shell-exec.js';
+import { ensureDir, exists, removeDir } from '../../scripts/utils/file-operations.js';
+import { logHeader, printError, printInfo, printSuccess } from '../../scripts/utils/logging.js';
 
 // Get the current script directory (ESM equivalent of __dirname)
 const __filename = fileURLToPath(import.meta.url);
@@ -192,4 +192,4 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-main(); 
+void main(); 

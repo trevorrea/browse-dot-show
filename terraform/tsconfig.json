@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../dist/terraform",
+    "rootDir": "..",
+    "allowImportingTsExtensions": false
+  },
+  "include": ["./**/*.ts", "../scripts/utils/**/*.ts"],
+  "exclude": ["node_modules"]
+} 

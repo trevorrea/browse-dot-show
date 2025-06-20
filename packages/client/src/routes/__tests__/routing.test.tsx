@@ -1,6 +1,6 @@
 import React from 'react'
-import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest'
-import { render, screen, waitFor, act } from '@testing-library/react'
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter, MemoryRouter } from 'react-router'
 import '@testing-library/jest-dom'

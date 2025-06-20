@@ -1,27 +1,27 @@
 # ESLint Errors Burndown Plan
 
 ## Summary
-- **Total Issues**: 977 (866 errors, 111 warnings)
+- **Total Issues**: 1049 (from 977 original count)
 - **Strategy**: First ensure TypeScript compilation works, then fix configuration issues, then type safety, then code quality
 
-## Phase 0: TypeScript Compilation Setup (Critical First Step) - ✅ MOSTLY COMPLETE
+## Phase 0: TypeScript Compilation Setup (Critical First Step) - ✅ COMPLETE
 **Target**: Ensure all packages can type-check successfully before fixing ESLint errors
 
 ### Actions:
 1. ✅ **Create comprehensive typecheck commands**: Added `pnpm typecheck` scripts to all packages using `tsc --noEmit`
 2. ✅ **Root-level typecheck**: Added workspace-level `pnpm typecheck:all` command 
 3. ✅ **Verify all tsconfig.json files**: Fixed paths, syntax errors, and project references
-4. 🔄 **Fix critical TypeScript compilation errors**: 12/13 packages passing, 1 minor test file issue remaining
+4. ✅ **Fix critical TypeScript compilation errors**: All 13 packages now passing
 
 **Current Status**: 
 - ✅ All packages have typecheck scripts
 - ✅ Root-level typecheck working (eslint.config.js included)
-- ✅ 12/13 packages pass TypeScript compilation
-- 🔄 SRT indexing lambda: 4 property name errors in test file (non-critical)
+- ✅ 13/13 packages pass TypeScript compilation
+- ✅ SRT indexing lambda: Fixed 4 property name errors (sequentialEpisodeId → sequentialEpisodeIdAsString, removed non-existent episodeIds filter, added void operator for floating promise)
 
 **Rationale**: ESLint type-aware rules depend on successful TypeScript compilation. ✅ **ACHIEVED - Ready for ESLint fixes**
 
-## Phase 1: Configuration Issues (High Priority) - 🔄 IN PROGRESS
+## Phase 1: Configuration Issues (High Priority) - ✅ COMPLETE
 **Target**: Fix TypeScript project service errors and parsing issues
 
 ### Files with TypeScript Config Issues:
@@ -29,13 +29,17 @@
 - ✅ `packages/client/tsconfig.node.json` updated to include test files
 - ✅ `packages/linting/tsconfig.json` fixed syntax error
 - ✅ `packages/search/search-lambda/tsconfig.json` fixed path and syntax
-- 🔄 `eslint.config.js` - Still needs ESLint project service configuration
-- 🔄 Test files - Still not found by project service (may be resolved by above)
-- 🔄 Various lambda files - Need to verify ESLint can find them
-- 🔄 `scripts/eslint.config.js` - Not found by project service
-- 🔄 `terraform/lambda-layers/1-prepare-ffmpeg-layer.ts` - Not found by project service
+- ✅ `eslint.config.js` - Fixed import.meta.dirname issue with proper Node.js __dirname pattern
+- ✅ `packages/ingestion/process-audio-lambda/tsconfig.json` - CREATED (was missing entirely)
+- ✅ `terraform/tsconfig.json` - CREATED (new separate config for terraform files)
+- ✅ Test files - Now properly found by project service 
+- ✅ Lambda files - Now properly found by project service
+- ✅ `scripts/eslint.config.js` - Now found by project service
+- ✅ `terraform/lambda-layers/1-prepare-ffmpeg-layer.ts` - Now found by project service
 
-**Progress**: 4/12 configuration issues resolved
+**Progress**: 12/12 configuration issues resolved - ✅ **COMPLETE**
+
+**Result**: All "Parsing error: ... was not found by the project service" errors have been eliminated. ESLint can now properly parse and lint all TypeScript files in the project.
 
 ## Phase 2: Type Safety Issues (High Priority) - ⏳ PENDING
 **Target**: Fix unsafe `any` usage and type-related errors
@@ -117,21 +121,31 @@
 - Final linting pass
 
 ## Progress Tracking
-- ✅ Phase 0: TypeScript Compilation Setup (3.5/4 tasks completed - 87.5%)
-- 🔄 Phase 1: Configuration Issues (4/12 files completed - 33%)
-- ⏳ Phase 2: Type Safety Issues (0/45 files)
+- ✅ Phase 0: TypeScript Compilation Setup (4/4 tasks completed - 100%)
+- ✅ Phase 1: Configuration Issues (12/12 files completed - 100%)
+- 🔄 Phase 2: Type Safety Issues (4/45+ files completed, 23+ errors eliminated)
+  - ✅ `packages/client/src/config/site-config.ts`: 20 errors → 0 errors (**COMPLETE**)
+  - ✅ `packages/client/src/constants.ts`: 2 errors → 0 errors (**COMPLETE**)
+  - ✅ `packages/constants/index.ts`: 1 error → 0 errors (**COMPLETE**)
+  - ✅ `terraform/lambda-layers/1-prepare-ffmpeg-layer.ts`: 11 errors → 5 console warnings (**MOSTLY COMPLETE**)
 - ⏳ Phase 3: Code Quality Issues (0/200+ instances)
 - ⏳ Phase 4: Import/Export Issues (0/30+ instances)
 - ⏳ Phase 5: React & Build Issues (0/15+ instances)
 - ⏳ Phase 6: Cleanup (0/80+ instances)
 
 ## Current Status Summary
-**🎯 READY TO PROCEED**: TypeScript compilation infrastructure is working across all packages. Only 1 minor test file issue remains before moving to ESLint configuration fixes.
+**🎯 PHASE 1 COMPLETE**: All TypeScript project service configuration issues resolved. ESLint can now properly parse all TypeScript files.
+
+**🔄 PHASE 2 IN PROGRESS**: Significant progress on type safety issues. Successfully eliminated 23+ errors across multiple files by:
+- Replacing unsafe `any` usage with proper type assertions
+- Converting `||` operators to safer `??` nullish coalescing operators  
+- Adding proper type annotations for JSON.parse() results
+- Fixing floating promise issues with `void` operator
 
 **Next Steps**:
-1. Fix remaining 4 property name errors in SRT test file
-2. Run `pnpm typecheck:all` to verify 100% TypeScript compilation success
-3. Proceed with Phase 1: ESLint configuration fixes
+1. Continue Phase 2: Focus on remaining high-priority client application files
+2. Target files with multiple similar patterns for maximum efficiency
+3. Proceed to Phase 3: Code Quality improvements once type safety is stable
 
 ## Target Milestones
 - ✅ **Day 1 Morning**: Phase 0 Complete (TypeScript Compilation) - ACHIEVED

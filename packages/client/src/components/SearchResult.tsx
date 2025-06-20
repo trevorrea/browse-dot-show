@@ -40,11 +40,11 @@ const SearchResult: React.FC<SearchResultProps> = ({ result, episodeData, isMani
     // Navigate to episode route with all parameters
     const queryString = currentParams.toString();
 
-    trackEvent({
+    void trackEvent({
       eventType: 'Result Clicked',
     });
 
-    navigate(`/episode/${episodeData.sequentialId}${queryString ? `?${queryString}` : ''}`);
+    void navigate(`/episode/${episodeData.sequentialId}${queryString ? `?${queryString}` : ''}`);
   };
 
   // Determine what to show in the footer
@@ -58,7 +58,7 @@ const SearchResult: React.FC<SearchResultProps> = ({ result, episodeData, isMani
       onClick={shouldBeClickable ? handleLoadHere : undefined}
     >
       <CardContent>
-        <HighlightedText className="text-sm" text={result.text} searchStringToHighlight={searchParams.get('q') || ''} />
+        <HighlightedText className="text-sm" text={result.text} searchStringToHighlight={searchParams.get('q') ?? ''} />
       </CardContent>
       <CardFooter className="block">
         {showEpisodeMetadata && (
@@ -68,7 +68,7 @@ const SearchResult: React.FC<SearchResultProps> = ({ result, episodeData, isMani
                 {formattedDate && <Badge variant="destructive" className="mr-2">{formattedDate}</Badge>}
                 <Badge variant="outline">{formattedStartTime} - {formattedEndTime}</Badge>
               </div>
-              <div className="text-xs text-muted-foreground w-full block mt-2 italic">{episodeData?.title || `Episode ${result.sequentialEpisodeIdAsString}`}</div>
+              <div className="text-xs text-muted-foreground w-full block mt-2 italic">{episodeData?.title ?? `Episode ${result.sequentialEpisodeIdAsString}`}</div>
             </div>
           </>
         )}
