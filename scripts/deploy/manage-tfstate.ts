@@ -10,8 +10,7 @@
  * All functions in this script assume they are executed from WITHIN the Terraform configuration directory.
  */
 
-import { join } from 'path';
-import { execCommand, execCommandOrThrow } from '../utils/shell-exec.js';
+import { execCommand } from '../utils/shell-exec.js';
 import { exists, readTextFile, writeTextFile } from '../utils/file-operations.js';
 import { printError, printInfo, printSuccess, printWarning } from '../utils/logging.js';
 // @ts-ignore - prompts types not resolving properly but runtime works

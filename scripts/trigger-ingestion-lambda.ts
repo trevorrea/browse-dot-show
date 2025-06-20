@@ -1,9 +1,8 @@
 #!/usr/bin/env tsx
 
-import { spawn } from 'child_process';
 import * as path from 'path';
 import { exists, readTextFile } from './utils/file-operations';
-import { logError, logInfo, logProgress, logSuccess, logWarning, printError, printInfo } from './utils/logging';
+import { logError, logProgress, logSuccess, logWarning, printError, printInfo } from './utils/logging';
 import { invokeLambda, validateAwsEnvironment } from './utils/aws-utils';
 import { loadEnvFile } from './utils/env-validation';
 import { execCommand } from './utils/shell-exec';

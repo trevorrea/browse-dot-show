@@ -1,11 +1,8 @@
 #!/usr/bin/env tsx
 
 import { commandExists, execCommand } from '../utils/shell-exec';
-import { exists, readTextFile } from '../utils/file-operations';
-import { logError, logInfo, logProgress, logSuccess, logWarning, printError, printInfo } from '../utils/logging';
+import { logError, logProgress, logSuccess, logWarning, printError } from '../utils/logging';
 import { validateAwsEnvironment } from '../utils/aws-utils';
-import { checkTerraform, getTerraformVersion } from '../utils/terraform-utils';
-import { loadEnvFile } from '../utils/env-validation';
 
 interface PrerequisiteCheck {
   name: string;

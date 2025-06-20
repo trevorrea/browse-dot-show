@@ -1,9 +1,6 @@
 #!/usr/bin/env tsx
 
-import { join } from 'path';
 import { execCommand, execCommandLive, execCommandOrThrow } from '../utils/shell-exec.js';
-import { exists } from '../utils/file-operations.js';
-import { loadEnvFile } from '../utils/env-validation.js';
 import { logHeader, printError, printInfo, printSuccess, printWarning } from '../utils/logging.js';
 import { checkAwsCredentials } from '../utils/aws-utils.js';
 // @ts-ignore - prompts types not resolving properly but runtime works

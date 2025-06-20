@@ -3,7 +3,7 @@
 import * as path from 'path';
 import { ShellExecOptions, commandExists, execCommand, execCommandOrThrow } from './shell-exec';
 import { exists } from './file-operations';
-import { logError, logInfo, logStep, logWarning } from './logging';
+import { logError, logInfo, logStep } from './logging';
 
 export interface TerraformOptions extends ShellExecOptions {
   workingDir?: string;

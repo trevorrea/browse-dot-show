@@ -9,7 +9,6 @@ import type { IncomingMessage, ServerResponse } from 'http'
 import { log } from './src/utils/logging';
 
 import { getSiteById, getSiteDirectory } from '@browse-dot-show/sites';
-import type { SiteConfig } from '@browse-dot-show/sites';
 
 // Function to load site configuration and create environment variables
 function loadSiteConfig() {
