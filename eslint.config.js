@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
+import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 
 export default tseslint.config(
@@ -27,6 +28,9 @@ export default tseslint.config(
       ...tseslint.configs.recommendedTypeChecked,
       ...tseslint.configs.stylisticTypeChecked,
     ],
+    plugins: {
+      'unused-imports': unusedImports,
+    },
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'module',
@@ -42,8 +46,21 @@ export default tseslint.config(
       'prefer-const': 'error',
       'no-var': 'error',
 
+      // Unused imports and variables (with auto-fix)
+      'no-unused-vars': 'off', // Turn off base rule
+      '@typescript-eslint/no-unused-vars': 'off', // Turn off TypeScript rule
+      'unused-imports/no-unused-imports': 'error', // Auto-remove unused imports
+      'unused-imports/no-unused-vars': [
+        'error',
+        {
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+        },
+      ],
+
       // TypeScript-specific rules
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',

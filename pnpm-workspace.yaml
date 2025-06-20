@@ -40,6 +40,7 @@ catalog:
   '@typescript-eslint/parser': ^8.34.1
   'eslint-plugin-react-hooks': ^5.2.0
   'eslint-plugin-react-refresh': ^0.4.14
+  'eslint-plugin-unused-imports': ^4.1.4
   typescript-eslint: ^8.34.1
   globals: ^15.13.0
 injectWorkspacePackages: true
