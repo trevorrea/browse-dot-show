@@ -33,6 +33,15 @@ catalog:
   xml2js: ^0.6.2
   '@types/xml2js': ^0.4.14
   vitest: ^1.6.1 # CURSOR-TODO - update to 3.2.3
+  # ESLint dependencies for workspace-wide linting
+  eslint: ^9.29.0
+  '@eslint/js': ^9.29.0
+  '@typescript-eslint/eslint-plugin': ^8.34.1
+  '@typescript-eslint/parser': ^8.34.1
+  'eslint-plugin-react-hooks': ^5.2.0
+  'eslint-plugin-react-refresh': ^0.4.14
+  typescript-eslint: ^8.34.1
+  globals: ^15.13.0
 injectWorkspacePackages: true
 ignoredBuiltDependencies:
   - '@tailwindcss/oxide'

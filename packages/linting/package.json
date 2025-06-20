@@ -8,6 +8,8 @@
     "scripts": {
         "build": "tsc",
         "test": "vitest run",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
         "lint:all:local": "pnpm lint:s3-files-metadata:local",
         "lint:all:prod": "pnpm lint:s3-files-metadata:prod",
         "lint:s3-files-metadata:local": "dotenvx run -f ../../.env.local -- tsx ./lint-s3-files-metadata.ts",
