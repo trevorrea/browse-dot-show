@@ -13,7 +13,7 @@
 import { join } from 'path';
 import { execCommand, execCommandOrThrow } from '../utils/shell-exec.js';
 import { exists, readTextFile, writeTextFile } from '../utils/file-operations.js';
-import { printInfo, printError, printWarning, printSuccess } from '../utils/logging.js';
+import { printError, printInfo, printSuccess, printWarning } from '../utils/logging.js';
 // @ts-ignore - prompts types not resolving properly but runtime works
 import prompts from 'prompts';
 

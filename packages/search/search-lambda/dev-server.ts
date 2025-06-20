@@ -32,7 +32,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  let event: any = {};
+  const event: any = {};
 
   try {
     if (method === 'GET') {

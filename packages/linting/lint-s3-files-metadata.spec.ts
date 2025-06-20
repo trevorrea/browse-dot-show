@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getEpisodeFileKey } from './utils/get-episode-file-key.js';
 import { parsePubDate } from './utils/parse-pub-date.js';
 
@@ -222,7 +222,7 @@ describe('RSS Parsing and Episode Extraction', () => {
       };
 
       const validItems = mockParsedFeed.rss.channel.item.filter(item => 
-        item.title && item.pubDate && item.enclosure && item.enclosure.url
+        item.title && item.pubDate && item.enclosure?.url
       );
       
       expect(validItems).toHaveLength(1);

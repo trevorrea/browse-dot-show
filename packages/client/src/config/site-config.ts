@@ -8,13 +8,11 @@ export interface SiteRuntimeConfig {
   domain: string;
   appHeader: AppHeader;
   socialAndMetadata: SocialAndMetadata;
-  podcastLinks: {
-    [podcastId: string]: {
+  podcastLinks: Record<string, {
       title: string;
       url: string;
       status: 'active' | 'inactive';
-    };
-  };
+    }>;
   themeColor: string;
   themeColorDark: string;
   searchPlaceholderOptions: string[];

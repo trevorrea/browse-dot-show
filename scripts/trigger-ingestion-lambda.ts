@@ -3,8 +3,8 @@
 import { spawn } from 'child_process';
 import * as path from 'path';
 import { exists, readTextFile } from './utils/file-operations';
-import { logInfo, logError, printInfo, printError, logProgress, logSuccess, logWarning } from './utils/logging';
-import { validateAwsEnvironment, invokeLambda } from './utils/aws-utils';
+import { logError, logInfo, logProgress, logSuccess, logWarning, printError, printInfo } from './utils/logging';
+import { invokeLambda, validateAwsEnvironment } from './utils/aws-utils';
 import { loadEnvFile } from './utils/env-validation';
 import { execCommand } from './utils/shell-exec';
 
@@ -281,7 +281,7 @@ async function main(): Promise<void> {
     const selectedFunction = response.lambdaFunction;
 
     // Invoke the Lambda function
-    await invokeLambdaWithOutput(selectedFunction, process.env.AWS_PROFILE!, awsRegion);
+    await invokeLambdaWithOutput(selectedFunction, process.env.AWS_PROFILE, awsRegion);
 
   } catch (error: any) {
     logError('Error:', error.message);

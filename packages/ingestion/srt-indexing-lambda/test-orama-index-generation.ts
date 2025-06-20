@@ -7,10 +7,10 @@
 
 import { 
   createOramaIndex, 
+  deserializeOramaIndex, 
   insertMultipleSearchEntries, 
-  serializeOramaIndex, 
-  deserializeOramaIndex,
-  searchOramaIndex 
+  searchOramaIndex,
+  serializeOramaIndex 
 } from '@browse-dot-show/database';
 import { SearchEntry, SearchRequest } from '@browse-dot-show/types';
 import { log } from '@browse-dot-show/logging';

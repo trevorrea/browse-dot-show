@@ -1,8 +1,8 @@
 #!/usr/bin/env tsx
 
 import * as path from 'path';
-import { readTextFile, exists } from './file-operations';
-import { logError, logWarning, logInfo } from './logging';
+import { exists, readTextFile } from './file-operations';
+import { logError, logInfo, logWarning } from './logging';
 
 export interface EnvValidationRule {
   name: string;
@@ -141,7 +141,7 @@ export function requireEnvVars(varNames: string[]): Record<string, string> {
  */
 export async function loadEnvFromMultipleSources(
   filePaths: string[],
-  required: boolean = false
+  required = false
 ): Promise<Record<string, string>> {
   let envVars: Record<string, string> = {};
   let loadedCount = 0;
@@ -248,7 +248,7 @@ export const commonRules: EnvValidationRule[] = [
  */
 export async function loadSiteEnvVars(
   siteId: string,
-  envType: string = 'local'
+  envType = 'local'
 ): Promise<Record<string, string>> {
   const basePath = path.resolve(__dirname, '../../sites');
   
@@ -264,7 +264,7 @@ export async function loadSiteEnvVars(
   // Filter out undefined values from process.env
   const filteredProcessEnv = Object.entries(process.env)
     .filter(([, value]) => value !== undefined)
-    .reduce((acc, [key, value]) => ({ ...acc, [key]: value as string }), {});
+    .reduce((acc, [key, value]) => ({ ...acc, [key]: value! }), {});
   
   return { ...filteredProcessEnv, ...envVars };
 } 

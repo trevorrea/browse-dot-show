@@ -6,7 +6,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { discoverSites, validateSite, getSiteDirectory, loadSitesFromDirectory } from './index.js';
+import { discoverSites, getSiteDirectory, loadSitesFromDirectory, validateSite } from './index.js';
 import { SiteConfig } from './types.js';
 
 interface ValidationResult {
@@ -354,7 +354,7 @@ function validateTerraformConfig(site: SiteConfig, result: ValidationResult): vo
         const tfvarsContent = fs.readFileSync(tfvarsPath, 'utf8');
         
         // Validate that site_id matches in tfvars
-        const siteIdMatch = tfvarsContent.match(/site_id\s*=\s*"([^"]+)"/);
+        const siteIdMatch = /site_id\s*=\s*"([^"]+)"/.exec(tfvarsContent);
         if (!siteIdMatch) {
             result.errors.push('terraform .tfvars file missing site_id variable');
         } else if (siteIdMatch[1] !== site.id) {

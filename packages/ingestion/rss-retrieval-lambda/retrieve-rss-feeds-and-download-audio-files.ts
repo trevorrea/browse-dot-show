@@ -1,12 +1,12 @@
 import * as xml2js from 'xml2js';
 import * as path from 'path';
-import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { CloudFrontClient, CreateInvalidationCommand } from '@aws-sdk/client-cloudfront';
 import { log } from '@browse-dot-show/logging';
-import { fileExists, getFile, saveFile, listFiles, createDirectory } from '@browse-dot-show/s3';
-import { getCurrentSiteRSSConfig, getCurrentSiteId } from '@browse-dot-show/config';
-import { EpisodeManifest, EpisodeInManifest } from '@browse-dot-show/types';
-import { getEpisodeManifestKey, getRSSDirectoryPrefix, getAudioDirPrefix, getEpisodeManifestDirPrefix } from '@browse-dot-show/constants';
+import { createDirectory, fileExists, getFile, listFiles, saveFile } from '@browse-dot-show/s3';
+import { getCurrentSiteId, getCurrentSiteRSSConfig } from '@browse-dot-show/config';
+import { EpisodeInManifest, EpisodeManifest } from '@browse-dot-show/types';
+import { getAudioDirPrefix, getEpisodeManifestDirPrefix, getEpisodeManifestKey, getRSSDirectoryPrefix } from '@browse-dot-show/constants';
 
 import { parsePubDate } from './utils/parse-pub-date.js';
 import { getEpisodeFileKey } from './utils/get-episode-file-key.js';
@@ -189,8 +189,8 @@ async function updateManifestWithNewEpisodes(
 ): Promise<{ newEpisodesInManifest: EpisodeInManifest[], existingEpisodesInManifest: EpisodeInManifest[] }> {
   const rssEpisodes: RssEpisode[] = parsedFeed.rss.channel.item || [];
   const podcastId = podcastConfig.id;
-  let newEpisodesInManifest: EpisodeInManifest[] = [];
-  let existingEpisodesInManifest: EpisodeInManifest[] = episodeManifest.episodes.filter((ep: EpisodeInManifest) => ep.podcastId === podcastId);
+  const newEpisodesInManifest: EpisodeInManifest[] = [];
+  const existingEpisodesInManifest: EpisodeInManifest[] = episodeManifest.episodes.filter((ep: EpisodeInManifest) => ep.podcastId === podcastId);
 
   const existingEpisodeIdentifiers = new Set(
     episodeManifest.episodes.map((ep: EpisodeInManifest) => ep.originalAudioURL)
@@ -276,7 +276,7 @@ async function identifyEpisodesToDownload(
   const podcastAudioDirS3 = path.join(getAudioDirPrefix(), podcastId);
   await createDirectory(podcastAudioDirS3); // Ensure podcast-specific audio directory exists in S3
 
-  let filesToDownload: EpisodeInManifest[] = [];
+  const filesToDownload: EpisodeInManifest[] = [];
   
   try {
     const existingAudioFilesS3 = (await listFiles(podcastAudioDirS3)).map(filePath => path.basename(filePath));
@@ -402,7 +402,7 @@ export async function handler(): Promise<void> {
     
     log.debug(`Found ${activeFeeds.length} active feeds to process based on version-controlled config.`);
     
-    let allNewlyDownloadedS3AudioKeys: string[] = [];
+    const allNewlyDownloadedS3AudioKeys: string[] = [];
     const podcastStats = new Map<string, { newManifestEntries: number, newDownloads: number }>();
     let totalNewEntriesIdentifiedThisRun = 0;
 
@@ -421,7 +421,7 @@ export async function handler(): Promise<void> {
         
         // 3. Parse RSS feed
         const parsedFeed = await parseRSSFeed(xmlContent);
-        if (!parsedFeed || !parsedFeed.rss || !parsedFeed.rss.channel) {
+        if (!parsedFeed?.rss?.channel) {
             log.error(`❌ Failed to parse RSS feed for ${podcastConfig.title} or structure is invalid. Skipping.`);
             continue;
         }

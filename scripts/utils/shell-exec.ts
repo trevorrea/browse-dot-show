@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { spawn, exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
 
 const execAsync = promisify(exec);

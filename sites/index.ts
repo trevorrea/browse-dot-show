@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Podcast, SiteConfig, AppHeader, SocialAndMetadata } from './types.js';
+import { AppHeader, Podcast, SiteConfig, SocialAndMetadata } from './types.js';
 
 export type { SiteConfig, AppHeader, SocialAndMetadata, Podcast };
 

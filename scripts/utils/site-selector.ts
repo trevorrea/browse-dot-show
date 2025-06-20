@@ -34,9 +34,7 @@ export interface SiteValidationResult {
 /**
  * Environment variables object
  */
-export interface EnvVars {
-  [key: string]: string;
-}
+export type EnvVars = Record<string, string>;
 
 /**
  * Discovers available sites following the priority logic:
@@ -227,7 +225,7 @@ export async function selectSite(options: SiteSelectionOptions = {}): Promise<st
  * @param env - Environment (dev, prod, local)
  * @returns Environment variables object
  */
-export function loadSiteEnvVars(siteId: string, env: string = 'dev'): EnvVars {
+export function loadSiteEnvVars(siteId: string, env = 'dev'): EnvVars {
     const siteDir = getSiteDirectory(siteId);
     if (!siteDir) {
         throw new Error(`Site directory for "${siteId}" not found`);

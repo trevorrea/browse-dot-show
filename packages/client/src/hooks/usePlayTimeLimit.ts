@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 // const PLAY_TIME_LIMIT_MS = 0.1 * 60 * 1000; // FOR TESTING - 0.1 minutes in milliseconds
 const PLAY_TIME_LIMIT_MS = 5 * 60 * 1000; // 5 minutes in milliseconds

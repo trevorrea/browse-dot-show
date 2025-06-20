@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { EpisodeManifest } from '@browse-dot-show/types'
 import { S3_HOSTED_FILES_BASE_URL } from '../constants'
 import { log } from '../utils/logging'
@@ -10,7 +10,7 @@ interface UseEpisodeManifestReturn {
 }
 
 // Global cache to ensure we only fetch once across the entire app lifecycle
-let manifestCache: {
+const manifestCache: {
   data: EpisodeManifest | null
   isLoading: boolean
   error: string | null
@@ -23,7 +23,7 @@ let manifestCache: {
 }
 
 // Subscribers array to track all active hook instances
-let subscribers: Array<(state: {episodeManifest: EpisodeManifest | null, isLoading: boolean, error: string | null}) => void> = []
+let subscribers: ((state: {episodeManifest: EpisodeManifest | null, isLoading: boolean, error: string | null}) => void)[] = []
 
 // Function to notify all subscribers when cache changes
 const notifySubscribers = () => {

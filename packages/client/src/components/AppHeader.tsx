@@ -4,7 +4,7 @@ import { ThemeToggle } from './ThemeToggle'
 
 import BlueskyLogo from '../icons/bluesky-logo.svg'
 
-import { InfoCircledIcon, GitHubLogoIcon, GearIcon } from '@radix-ui/react-icons'
+import { GearIcon, GitHubLogoIcon, InfoCircledIcon } from '@radix-ui/react-icons'
 import { AudioSourceSelect } from './AudioSourceSelect'
 import siteConfig from '../config/site-config'
 

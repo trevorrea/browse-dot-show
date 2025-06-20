@@ -1,8 +1,8 @@
 #!/usr/bin/env tsx
 
-import { execCommand, commandExists } from '../utils/shell-exec';
+import { commandExists, execCommand } from '../utils/shell-exec';
 import { exists, readTextFile } from '../utils/file-operations';
-import { logInfo, logError, logWarning, printInfo, printError, logSuccess, logProgress } from '../utils/logging';
+import { logError, logInfo, logProgress, logSuccess, logWarning, printError, printInfo } from '../utils/logging';
 import { validateAwsEnvironment } from '../utils/aws-utils';
 import { checkTerraform, getTerraformVersion } from '../utils/terraform-utils';
 import { loadEnvFile } from '../utils/env-validation';
@@ -110,7 +110,7 @@ async function checkTerraformTool(): Promise<PrerequisiteCheck> {
     'terraform', 
     ['--version'],
     (output) => {
-      const match = output.match(/Terraform v(\d+\.\d+\.\d+)/);
+      const match = /Terraform v(\d+\.\d+\.\d+)/.exec(output);
       return match ? match[1] : 'unknown';
     },
     { major: 1, minor: 6 }
@@ -123,7 +123,7 @@ async function checkAwsCli(): Promise<PrerequisiteCheck> {
     'aws', 
     ['--version'],
     (output) => {
-      const match = output.match(/aws-cli\/(\d+\.\d+\.\d+)/);
+      const match = /aws-cli\/(\d+\.\d+\.\d+)/.exec(output);
       return match ? match[1] : 'unknown';
     }
   );

@@ -1,6 +1,6 @@
-import { useState, useRef, useImperativeHandle, forwardRef } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import AudioPlayerH5, { RHAP_UI } from 'react-h5-audio-player';
-import { PlayIcon, PauseIcon } from '@radix-ui/react-icons';
+import { PauseIcon, PlayIcon } from '@radix-ui/react-icons';
 import { cn } from '@/lib/utils';
 
 import Skip15SecondsBack from '../../icons/skip-15-seconds-back.svg?react';

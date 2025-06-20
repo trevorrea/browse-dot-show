@@ -3,15 +3,15 @@ import * as path from 'path';
 import { execSync } from 'child_process';
 import { log } from '@browse-dot-show/logging';
 import { 
+  deleteFile, 
   fileExists, 
   getFile, 
-  saveFile, 
-  listFiles, 
-  listDirectories,
-  deleteFile 
+  listDirectories, 
+  listFiles,
+  saveFile 
 } from '@browse-dot-show/s3';
 import { RSS_CONFIG } from '@browse-dot-show/config';
-import { EpisodeManifest, EpisodeInManifest, PodcastId } from '@browse-dot-show/types';
+import { EpisodeInManifest, EpisodeManifest, PodcastId } from '@browse-dot-show/types';
 import { getEpisodeManifestKey } from '@browse-dot-show/constants';
 import { getEpisodeFileKey } from './utils/get-episode-file-key.js';
 import { parsePubDate } from './utils/parse-pub-date.js';
@@ -114,7 +114,7 @@ function extractEpisodesFromRSS(parsedFeed: any, podcastId: PodcastId): Expected
   const episodes: ExpectedEpisode[] = [];
 
   for (const rssEpisode of rssEpisodes) {
-    if (!rssEpisode.enclosure || !rssEpisode.enclosure.url || !rssEpisode.pubDate) {
+    if (!rssEpisode.enclosure?.url || !rssEpisode.pubDate) {
       log.warn(`Skipping episode "${rssEpisode.title || 'N/A'}" due to missing enclosure or pubDate`);
       continue;
     }
@@ -630,7 +630,7 @@ async function updateManifestFromExpectedEpisodes(expectedEpisodes: ExpectedEpis
 /**
  * Main linting function
  */
-export async function lintS3Files(applyFixes: boolean = false): Promise<LintResult> {
+export async function lintS3Files(applyFixes = false): Promise<LintResult> {
   log.info('🔍 Starting S3 files metadata linting...');
   
   try {

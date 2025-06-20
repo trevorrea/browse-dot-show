@@ -129,8 +129,8 @@ async function executeS3Sync(
 function parseSyncOutput(output: string): { synced: number; skipped: number; overwritten: number } {
   const lines: string[] = output.split('\n');
   let synced = 0;
-  let skipped = 0;
-  let overwritten = 0;
+  const skipped = 0;
+  const overwritten = 0;
   
   for (const line of lines) {
     if (line.includes('upload:') || line.includes('download:')) {

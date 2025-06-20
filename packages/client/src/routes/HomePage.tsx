@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Outlet, useSearchParams } from 'react-router'
 
 import { log } from '../utils/logging';
@@ -9,7 +9,7 @@ import '../App.css'
 import AppHeader from '../components/AppHeader'
 import SearchInput from '../components/SearchInput'
 import SearchResults from '../components/SearchResults'
-import { performSearch, performHealthCheck } from '../utils/search'
+import { performHealthCheck, performSearch } from '../utils/search'
 import { SortOption } from '../types/search'
 import { useEpisodeManifest } from '../hooks/useEpisodeManifest'
 import { trackEvent } from '@/utils/goatcounter';

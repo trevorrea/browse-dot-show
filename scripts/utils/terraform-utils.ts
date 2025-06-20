@@ -1,9 +1,9 @@
 #!/usr/bin/env tsx
 
 import * as path from 'path';
-import { execCommand, execCommandOrThrow, commandExists, ShellExecOptions } from './shell-exec';
+import { ShellExecOptions, commandExists, execCommand, execCommandOrThrow } from './shell-exec';
 import { exists } from './file-operations';
-import { logInfo, logError, logWarning, logStep } from './logging';
+import { logError, logInfo, logStep, logWarning } from './logging';
 
 export interface TerraformOptions extends ShellExecOptions {
   workingDir?: string;
@@ -194,7 +194,7 @@ export async function terraformShow(
  * Format Terraform files
  */
 export async function terraformFormat(
-  check: boolean = false,
+  check = false,
   options: TerraformOptions = {}
 ): Promise<string> {
   const args = check ? ['-check'] : [];

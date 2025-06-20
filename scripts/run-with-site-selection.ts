@@ -4,7 +4,7 @@ import { spawn } from 'child_process';
 import * as path from 'path';
 
 // Import site loading utilities
-import { selectSite, loadSiteEnvVars } from './utils/site-selector';
+import { loadSiteEnvVars, selectSite } from './utils/site-selector';
 
 /**
  * Wrapper script that handles site selection and runs commands with site context

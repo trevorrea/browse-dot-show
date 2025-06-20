@@ -1,12 +1,12 @@
 #!/usr/bin/env tsx
 
 import { 
-  validateAwsEnvironment, 
-  s3BucketExists, 
+  awsCommand, 
   createS3Bucket, 
-  awsCommand 
+  s3BucketExists, 
+  validateAwsEnvironment 
 } from '../utils/aws-utils';
-import { logInfo, logError, printInfo, printError, logProgress, logSuccess } from '../utils/logging';
+import { logError, logInfo, logProgress, logSuccess, printError, printInfo } from '../utils/logging';
 import { requireEnvVars } from '../utils/env-validation';
 
 /**

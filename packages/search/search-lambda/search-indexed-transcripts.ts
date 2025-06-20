@@ -1,12 +1,12 @@
 import { resolve } from 'node:path';
 import * as fs from 'fs/promises';
-import { getSearchIndexKey, getLocalDbPath } from '@browse-dot-show/constants';
+import { getLocalDbPath, getSearchIndexKey } from '@browse-dot-show/constants';
 import { SearchRequest, SearchResponse } from '@browse-dot-show/types';
-import { deserializeOramaIndex, searchOramaIndex, OramaSearchDatabase } from '@browse-dot-show/database';
+import { OramaSearchDatabase, deserializeOramaIndex, searchOramaIndex } from '@browse-dot-show/database';
 import { log } from '@browse-dot-show/logging';
 import {
-  getFile,
-  fileExists
+  fileExists,
+  getFile
 } from '@browse-dot-show/s3';
 
 // Keep the Orama index in memory for reuse between lambda invocations

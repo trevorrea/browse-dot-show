@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
-import { execCommand, execCommandOrThrow, commandExists, ShellExecOptions } from './shell-exec';
-import { logInfo, logError, logWarning } from './logging';
+import { ShellExecOptions, commandExists, execCommand, execCommandOrThrow } from './shell-exec';
+import { logError, logInfo, logWarning } from './logging';
 
 export interface AwsCliOptions extends ShellExecOptions {
   profile?: string;
@@ -124,7 +124,7 @@ export async function s3BucketExists(bucketName: string, profile?: string): Prom
  */
 export async function createS3Bucket(
   bucketName: string, 
-  region: string = 'us-east-1',
+  region = 'us-east-1',
   profile?: string
 ): Promise<void> {
   const args = ['--bucket', bucketName];
@@ -185,7 +185,7 @@ export async function downloadFromS3(
 export async function syncToS3(
   localPath: string,
   bucketName: string,
-  s3Prefix: string = '',
+  s3Prefix = '',
   options: AwsCliOptions & {
     delete?: boolean;
     exclude?: string[];

@@ -1,24 +1,24 @@
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import { getSearchIndexKey, getLocalDbPath, getEpisodeManifestKey, getTranscriptsDirPrefix, getSearchEntriesDirPrefix } from '@browse-dot-show/constants';
+import { getEpisodeManifestKey, getLocalDbPath, getSearchEntriesDirPrefix, getSearchIndexKey, getTranscriptsDirPrefix } from '@browse-dot-show/constants';
 import { 
+  type OramaSearchDatabase, 
   createOramaIndex, 
-  insertMultipleSearchEntries, 
-  serializeOramaIndex,
-  type OramaSearchDatabase 
+  insertMultipleSearchEntries,
+  serializeOramaIndex 
 } from '@browse-dot-show/database';
 import { log } from '@browse-dot-show/logging';
-import { SearchEntry, EpisodeInManifest, SearchRequest } from '@browse-dot-show/types';
+import { EpisodeInManifest, SearchEntry, SearchRequest } from '@browse-dot-show/types';
 import {
+  createDirectory, 
   fileExists, 
   getFile, 
-  saveFile, 
-  listFiles,
   listDirectories,
-  createDirectory
+  listFiles,
+  saveFile
 } from '@browse-dot-show/s3'
 import { convertSrtFileIntoSearchEntryArray } from './utils/convert-srt-file-into-search-entry-array.js';
-import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 
 log.info(`▶️ Starting convert-srt-files-into-indexed-search-entries, with logging level: ${log.getLevel()}`);
 
@@ -185,7 +185,7 @@ export async function handler(): Promise<any> {
     log.debug(`[DEBUG] Podcast directories: ${JSON.stringify(podcastDirectoryPrefixes)}`);
   }
 
-  let allSrtFiles: string[] = [];
+  const allSrtFiles: string[] = [];
 
   // For each podcast directory prefix, list the files within it
   for (const dirPrefix of podcastDirectoryPrefixes) {
@@ -298,8 +298,8 @@ export async function handler(): Promise<any> {
 
   // TODO: Can eventually remove this section, because it adds a few seconds to the lambda runtime
   // For now, leaving because we've encountered this issue, and want to be warned exactly what it is, if it occurs
-  let setOfIds = new Set<string>();
-  let duplicateIds: SearchEntry[] = []
+  const setOfIds = new Set<string>();
+  const duplicateIds: SearchEntry[] = []
   allSearchEntriesToInsert.forEach(entry => {
     if (setOfIds.has(entry.id)) {
       duplicateIds.push(entry);

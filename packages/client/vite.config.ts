@@ -168,7 +168,7 @@ function siteAssetsPlugin() {
       }
 
       // Copy all files and directories from source assets to target assets
-      function copyRecursive(sourceDir: string, targetDir: string, relativePath: string = '') {
+      function copyRecursive(sourceDir: string, targetDir: string, relativePath = '') {
         const items = fs.readdirSync(sourceDir);
         
         items.forEach(item => {

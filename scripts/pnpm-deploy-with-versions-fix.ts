@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 import { execCommandOrThrow } from './utils/shell-exec';
-import { logInfo, logError, printInfo, printError } from './utils/logging';
+import { logError, logInfo, printError, printInfo } from './utils/logging';
 import { removeDir } from './utils/file-operations';
 
 /**

@@ -1,10 +1,10 @@
 #!/usr/bin/env tsx
 
-import { readdir, mkdir, writeFile, access } from 'fs/promises';
+import { access, mkdir, readdir, writeFile } from 'fs/promises';
 import { join, resolve } from 'path';
 import { execCommand } from './utils/shell-exec.js';
 import { ensureDir, exists, writeTextFile } from './utils/file-operations.js';
-import { printInfo, printSuccess, printWarning, printError } from './utils/logging.js';
+import { printError, printInfo, printSuccess, printWarning } from './utils/logging.js';
 // @ts-ignore - prompts types not resolving properly but runtime works
 import prompts from 'prompts';
 

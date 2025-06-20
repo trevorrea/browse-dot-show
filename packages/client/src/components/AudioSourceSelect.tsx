@@ -1,10 +1,10 @@
-import { useAudioSource, AudioSource } from "../hooks/useAudioSource";
+import { AudioSource, useAudioSource } from "../hooks/useAudioSource";
 import {
   Select,
   SelectContent,
+  SelectItem,
   SelectTrigger,
   SelectValue,
-  SelectItem,
 } from "@/components/ui/select";
 
 export function AudioSourceSelect() {

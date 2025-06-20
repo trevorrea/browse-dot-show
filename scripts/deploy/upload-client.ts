@@ -4,7 +4,7 @@ import { join } from 'path';
 import { execCommandOrThrow } from '../utils/shell-exec.js';
 import { exists } from '../utils/file-operations.js';
 import { loadEnvFile } from '../utils/env-validation.js';
-import { printInfo, printError, printSuccess, logHeader } from '../utils/logging.js';
+import { logHeader, printError, printInfo, printSuccess } from '../utils/logging.js';
 import { checkAwsCredentials } from '../utils/aws-utils.js';
 import { terraformOutput } from '../utils/terraform-utils.js';
 

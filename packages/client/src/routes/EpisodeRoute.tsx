@@ -1,12 +1,12 @@
-import { useParams, useSearchParams, useNavigate } from 'react-router'
-import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { useEffect, useRef, useState } from 'react'
 import { EpisodeInManifest } from '@browse-dot-show/types'
-import { CaretSortIcon, MinusCircledIcon, Share1Icon, Share2Icon, Cross2Icon, CopyIcon, CheckCircledIcon } from "@radix-ui/react-icons"
+import { CaretSortIcon, CheckCircledIcon, CopyIcon, Cross2Icon, MinusCircledIcon, Share1Icon, Share2Icon } from "@radix-ui/react-icons"
 
 import { log } from '../utils/logging';
 import { SearchEntry } from '@browse-dot-show/types'
 
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetClose } from '../components/ui/sheet'
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../components/ui/sheet'
 import { Badge } from "../components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover"
 import { Button } from "../components/ui/button"
