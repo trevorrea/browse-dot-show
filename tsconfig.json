@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "noEmit": true
+  },
+  "include": [
+    "eslint.config.js"
+  ],
+  "exclude": [
+    "packages/**/*",
+    "sites/**/*",
+    "scripts/**/*",
+    "node_modules",
+    "dist*",
+    "aws-dist"
+  ]
+} 

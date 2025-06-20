@@ -6,7 +6,8 @@
     "main": "./dist/index.js",
     "type": "module",
     "scripts": {
-        "build": "tsc"
+        "build": "tsc",
+        "typecheck": "tsc --noEmit"
     },
     "devDependencies": {
         "typescript": "catalog:"

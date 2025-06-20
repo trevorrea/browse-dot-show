@@ -1,0 +1,14 @@
+{
+    "name": "@browse-dot-show/scripts",
+    "private": true,
+    "version": "0.0.1",
+    "description": "Deployment and utility scripts",
+    "type": "module",
+    "scripts": {
+        "typecheck": "tsc --noEmit"
+    },
+    "devDependencies": {
+        "typescript": "catalog:",
+        "tsx": "catalog:"
+    }
+} 

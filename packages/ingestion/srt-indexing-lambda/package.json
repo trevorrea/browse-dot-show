@@ -8,6 +8,7 @@
   "files": [],
   "scripts": {
     "build:prod": "dotenvx run -f ../../../.env.lambda-prod-build -- rolldown -c rolldown.config.ts && pnpm __prepare-for-aws",
+    "typecheck": "tsc --noEmit",
     "run:local": "tsx convert-srt-files-into-indexed-search-entries.ts",
     "run:site": "tsx ../../../scripts/run-lambda-for-site.ts @browse-dot-show/srt-indexing-lambda convert-srt-files-into-indexed-search-entries.ts",
     "test": "vitest run",
@@ -25,7 +26,8 @@
     "srt-parser-2": "catalog:",
     "rolldown": "catalog:",
     "vitest": "catalog:",
-    "tsx": "catalog:"
+    "tsx": "catalog:",
+    "typescript": "catalog:"
   },
   "engines": {
     "node": ">=20.0.0"

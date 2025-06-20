@@ -6,6 +6,7 @@
   "scripts": {
     "build:all-sites": "node build-sites.js all",
     "build:specific-site": "node build-sites.js",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",

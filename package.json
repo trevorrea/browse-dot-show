@@ -8,6 +8,18 @@
     "all:build": "pnpm --filter @browse-dot-show/* build",
     "all:build:prod": "pnpm --filter @browse-dot-show/* build:prod",
     "all:test": "pnpm --filter @browse-dot-show/* test",
+    "typecheck:all": "pnpm --filter @browse-dot-show/* typecheck && pnpm typecheck:root",
+    "typecheck:root": "tsc --noEmit",
+    "typecheck:client": "pnpm --filter @browse-dot-show/client typecheck",
+    "typecheck:database": "pnpm --filter @browse-dot-show/database typecheck",
+    "typecheck:s3": "pnpm --filter @browse-dot-show/s3 typecheck",
+    "typecheck:search": "pnpm --filter @browse-dot-show/search-lambda typecheck",
+    "typecheck:rss": "pnpm --filter @browse-dot-show/rss-retrieval-lambda typecheck",
+    "typecheck:audio": "pnpm --filter @browse-dot-show/process-audio-lambda typecheck",
+    "typecheck:srt": "pnpm --filter @browse-dot-show/srt-indexing-lambda typecheck",
+    "typecheck:linting": "pnpm --filter @browse-dot-show/linting typecheck",
+    "typecheck:sites": "pnpm --filter @browse-dot-show/sites typecheck",
+    "typecheck:scripts": "pnpm --filter @browse-dot-show/scripts typecheck",
     "lint:all": "eslint .",
     "lint:fix": "eslint . --fix",
     "deploy:site": "tsx scripts/run-with-site-selection.ts \"deployment\" \"tsx scripts/deploy/deploy.ts\"",
@@ -49,6 +61,7 @@
     "eslint-plugin-react-refresh": "catalog:",
     "eslint-plugin-unused-imports": "catalog:",
     "typescript-eslint": "catalog:",
+    "typescript": "catalog:",
     "globals": "catalog:"
   }
 }

@@ -8,6 +8,7 @@
   "files": [],
   "scripts": {
     "test": "vitest run",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "build:prod": "dotenvx run -f ../../../.env.lambda-prod-build -- rolldown -c rolldown.config.ts && pnpm __prepare-for-aws",

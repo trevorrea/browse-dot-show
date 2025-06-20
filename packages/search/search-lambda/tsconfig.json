@@ -1,7 +1,14 @@
 {
-  "extends": "../../tsconfig.base.lambdas.json",
+  "extends": "../../../tsconfig.base.lambdas.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": "./"
   },
+  "include": [
+    "**/*.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
 }
