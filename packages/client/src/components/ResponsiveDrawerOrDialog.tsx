@@ -1,14 +1,16 @@
 import * as React from "react"
 
 import { useMediaQuery } from "@/hooks/useMediaQuery"
+import { Button } from "@browse-dot-show/ui"
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+} from "@browse-dot-show/ui"
+import {
   Drawer,
   DrawerClose,
   DrawerContent,
