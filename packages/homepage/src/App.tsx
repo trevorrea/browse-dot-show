@@ -5,7 +5,7 @@ import { Input } from '@browse-dot-show/ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@browse-dot-show/ui'
 import { ThemeToggle } from '@browse-dot-show/blocks'
 import { MagnifyingGlassIcon, ExternalLinkIcon, GitHubLogoIcon } from '@radix-ui/react-icons'
-import deployedSites from './deployed-sites.config'
+import deployedSites from './deployed-sites.config.jsonc'
 
 interface Site {
   isOriginSite: boolean;
