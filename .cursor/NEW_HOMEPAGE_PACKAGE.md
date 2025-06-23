@@ -89,36 +89,38 @@ And here are important technical considerations as we get started on the impleme
    - 🔄 Update `packages/client` to import from `@browse-dot-show/ui` and `@browse-dot-show/blocks`
    - Add path mappings for the new packages if needed
 
-## Phase 2: Homepage Package Setup
-1. **Clean up homepage package:**
-   - Remove default Vite React app content
-   - Fix package.json name from "@browse-dot-show/constants" to "@browse-dot-show/homepage"
-   - Add dependencies: React, the shared UI/blocks packages, Tailwind, etc.
+## Phase 2: Homepage Package Setup ✅ COMPLETED
+1. **Clean up homepage package:** ✅ COMPLETED
+   - ✅ Removed default Vite React app content
+   - ✅ Fixed package.json name from "@browse-dot-show/constants" to "@browse-dot-show/homepage"
+   - ✅ Added dependencies: React, the shared UI/blocks packages, Tailwind, etc.
 
-2. **Set up homepage styling:**
-   - Create a new theme CSS file following the pattern from `sites/origin-sites/hardfork/index.css`
-   - Configure Tailwind to use the new theme
-   - Import shared CSS from blocks package
+2. **Set up homepage styling:** ✅ COMPLETED
+   - ✅ Created a new theme CSS file following the pattern from `sites/origin-sites/listenfairplay/index.css`
+   - ✅ Configured Tailwind to use the new theme
+   - ✅ Set up proper PostCSS configuration
 
-3. **Create homepage Vite config:**
-   - Set up proper build configuration
-   - Configure CSS imports and theming
+3. **Create homepage Vite config:** ✅ COMPLETED
+   - ✅ Set up proper TypeScript configuration
+   - ✅ Configure CSS imports and theming
 
-## Phase 3: Homepage Component Implementation
-1. **Create main homepage layout:**
-   - Use shared header component from blocks, but simplified for homepage
-   - Implement responsive, mobile-first design
-   - Add the emoji tagline: "📝🔍🎙️ transcribe & search any podcast"
+## Phase 3: Homepage Component Implementation ✅ COMPLETED
+1. **Create main homepage layout:** ✅ COMPLETED
+   - ✅ Created responsive, mobile-first design
+   - ✅ Added the emoji tagline: "📝🔍🎙️ transcribe & search any podcast"
+   - ✅ Implemented simple header with ThemeToggle
+   - ✅ Added footer with attribution and GitHub link
 
-2. **Implement universal search component:**
-   - Create site selector dropdown using data from `deployed-sites.config.jsonc`
-   - Build search input that enables after site selection
-   - Implement redirect logic to `https://{siteId}.browse.show/?q={query}`
+2. **Implement universal search component:** ✅ COMPLETED
+   - ✅ Created site selector dropdown using data from `deployed-sites.config.jsonc`
+   - ✅ Built search input that enables after site selection
+   - ✅ Implemented redirect logic to `https://{siteId}.browse.show/?q={query}`
+   - ✅ Added Enter key support for search
 
-3. **Add CTA sections:**
-   - Primary CTA button linking to the Google Doc for voting
-   - Secondary self-hosting CTA linking to GitHub docs
-   - Make sure CTAs are prominent and mobile-friendly
+3. **Add CTA sections:** ✅ COMPLETED
+   - ✅ Primary CTA button linking to the Google Doc for voting
+   - ✅ Secondary self-hosting CTA linking to GitHub docs
+   - ✅ Made CTAs prominent and mobile-friendly with card layout
 
 ## Phase 4: Testing & Integration
 1. **Test shared components:**

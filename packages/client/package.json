@@ -1,18 +1,24 @@
 {
   "name": "@browse-dot-show/client",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build:all-sites": "node build-sites.js all",
-    "build:specific-site": "node build-sites.js",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "_vite-dev": "vite",
-    "_serve-s3-assets": "tsx ../../scripts/serve-site-assets.ts"
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "test": "vitest"
   },
   "dependencies": {
+    "@browse-dot-show/blocks": "workspace:*",
+    "@browse-dot-show/config": "workspace:*",
+    "@browse-dot-show/constants": "workspace:*",
+    "@browse-dot-show/database": "workspace:*",
+    "@browse-dot-show/logging": "workspace:*",
+    "@browse-dot-show/s3": "workspace:*",
     "@browse-dot-show/types": "workspace:*",
+    "@browse-dot-show/ui": "workspace:*",
     "@radix-ui/react-collapsible": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-icons": "^1.3.2",
