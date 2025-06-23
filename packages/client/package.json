@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "_vite-dev": "vite",
+    "_serve-s3-assets": "tsx ../../scripts/serve-site-assets.ts",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",

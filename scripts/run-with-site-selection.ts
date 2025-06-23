@@ -39,7 +39,9 @@ async function main(): Promise<void> {
             ...process.env,
             ...siteEnvVars,
             SELECTED_SITE_ID: siteId,
-            CURRENT_SITE_ID: siteId  // Set for site-aware functions in @browse-dot-show/constants
+            CURRENT_SITE_ID: siteId,  // Set for site-aware functions in @browse-dot-show/constants
+            DEFAULT_SITE_ID: siteId,  // Set default site for child processes
+            SKIP_SITE_SELECTION_PROMPT: 'true'  // Skip prompts in child processes
         };
 
         console.log(`🚀 Running: ${command} ${commandArgs.join(' ')}`);
