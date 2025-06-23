@@ -104,23 +104,47 @@ And here are important technical considerations as we get started on the impleme
    - ✅ Set up proper TypeScript configuration
    - ✅ Configure CSS imports and theming
 
-## Phase 3: Homepage Component Implementation ✅ COMPLETED
+## Phase 3: Homepage Component Implementation 🚫 BLOCKED
 1. **Create main homepage layout:** ✅ COMPLETED
    - ✅ Created responsive, mobile-first design
    - ✅ Added the emoji tagline: "📝🔍🎙️ transcribe & search any podcast"
    - ✅ Implemented simple header with ThemeToggle
    - ✅ Added footer with attribution and GitHub link
 
-2. **Implement universal search component:** ✅ COMPLETED
-   - ✅ Created site selector dropdown using data from `deployed-sites.config.jsonc`
+2. **Implement universal search component:** 🚫 BLOCKED
+   - ✅ Created site selector dropdown component structure
    - ✅ Built search input that enables after site selection
    - ✅ Implemented redirect logic to `https://{siteId}.browse.show/?q={query}`
    - ✅ Added Enter key support for search
+   - 🚫 **BLOCKER**: Cannot import `deployed-sites.config.jsonc` during build process
 
 3. **Add CTA sections:** ✅ COMPLETED
    - ✅ Primary CTA button linking to the Google Doc for voting
    - ✅ Secondary self-hosting CTA linking to GitHub docs
    - ✅ Made CTAs prominent and mobile-friendly with card layout
+
+### **Current Blocker: JSONC Import Issue**
+
+**Problem**: The `deployed-sites.config.jsonc` file cannot be imported during the Vite build process. The dev server works, but production builds fail with:
+```
+src/deployed-sites.config.jsonc (2:11): Expected ';', '}' or <eof> (Note that you need plugins to import files that are not JavaScript)
+```
+
+**Attempted Solutions**:
+1. **Custom Vite Plugin**: Created multiple iterations of a custom Vite plugin using [jsonc-parser](https://www.npmjs.com/package/jsonc-parser):
+   - Tried `transform` hook approach - not effective for build
+   - Tried `load` hook with various configurations 
+   - Tried `resolveId` + `load` combination with `enforce: 'pre'`
+   - Plugin works in dev mode but fails during production build
+
+2. **Technical Details**:
+   - Added `jsonc-parser@3.3.1` dependency
+   - Created TypeScript declarations for `*.jsonc` modules
+   - Plugin attempts to parse JSONC and export as JSON, but Rollup processes the file as JavaScript before our plugin can intercept
+
+**Root Cause**: Vite/Rollup attempts to parse the `.jsonc` file as JavaScript before the custom plugin can transform it, causing syntax errors due to the comments and JSON format.
+
+**Requirements**: Must keep `deployed-sites.config.jsonc` format (not convert to `.ts` or `.js`)
 
 ## Phase 4: Testing & Integration
 1. **Test shared components:**
