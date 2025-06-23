@@ -69,21 +69,25 @@ And here are important technical considerations as we get started on the impleme
 # Implementation Plan
 
 ## Phase 1: Set Up Shared Component Architecture
-1. **Move UI components to shared package:**
-   - Move all files from `packages/client/src/components/ui/*` to `packages/ui/src/`
-   - Create proper exports in `packages/ui/src/index.ts`
-   - Update `packages/ui/package.json` with correct dependencies (React, Radix UI, etc.)
-   - Update `packages/client` to import from `@browse-dot-show/ui`
+1. **Move UI components to shared package:** ✅ COMPLETED
+   - ✅ Moved all files from `packages/client/src/components/ui/*` to `packages/ui/src/`
+   - ✅ Created proper exports in `packages/ui/src/index.ts`
+   - ✅ Updated `packages/ui/package.json` with correct dependencies (React, Radix UI, etc.)
+   - ✅ Fixed TypeScript config and module import paths
+   - ✅ Successfully building UI package
+   - 🔄 Next: Update `packages/client` to import from `@browse-dot-show/ui`
 
-2. **Create blocks package for shared layout components:**
-   - Move `AppHeader.tsx`, `ResponsiveDrawerOrDialog.tsx`, `ThemeToggle.tsx` to `packages/blocks/src/`
-   - Create shared CSS files for header styling and theme animations
-   - Move utility hooks like `useMediaQuery.ts`, `useTheme.ts` to blocks
-   - Create proper exports and dependencies
+2. **Create blocks package for shared layout components:** ✅ COMPLETED
+   - ✅ Moved `ResponsiveDrawerOrDialog.tsx`, `ThemeToggle.tsx` to `packages/blocks/src/`
+   - ✅ Moved utility hooks `useMediaQuery.ts`, `useTheme.ts` to blocks
+   - ✅ Created proper exports and dependencies
+   - ✅ Successfully building blocks package
+   - 🔄 Next: Move AppHeader and update client to use blocks
 
-3. **Update TypeScript configs:**
-   - Add path mappings for the new packages in relevant tsconfig files
-   - Ensure all packages can import from `@browse-dot-show/ui` and `@browse-dot-show/blocks`
+3. **Update TypeScript configs:** 🔄 IN PROGRESS
+   - ✅ Added blocks to pnpm workspace
+   - 🔄 Update `packages/client` to import from `@browse-dot-show/ui` and `@browse-dot-show/blocks`
+   - Add path mappings for the new packages if needed
 
 ## Phase 2: Homepage Package Setup
 1. **Clean up homepage package:**

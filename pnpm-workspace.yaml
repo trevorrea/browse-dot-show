@@ -9,6 +9,7 @@ packages:
   - packages/s3
   - packages/types
   - packages/ui
+  - packages/blocks
   - packages/ingestion/rss-retrieval-lambda
   - packages/ingestion/process-audio-lambda
   - packages/ingestion/srt-indexing-lambda
