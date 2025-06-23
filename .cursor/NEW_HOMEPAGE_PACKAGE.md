@@ -156,7 +156,12 @@ And here are important technical considerations as we get started on the impleme
    - ✅ Cross-package imports working correctly
    - ✅ Deployment-ready bundle created
 
-## Phase 5: Infrastructure Setup (Next Phase)
+## Phase 5: Test with user (Next Phase)
+1. **Confirm that styling is working as expected**
+
+(perhaps other user instructions, based on `pnpm dev`)
+
+## Phase 6: Infrastructure Setup (Next Phase)
 1. **Create simplified Terraform config:**
    - S3 bucket for static hosting
    - CloudFront distribution 

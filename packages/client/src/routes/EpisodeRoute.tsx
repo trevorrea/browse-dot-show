@@ -6,10 +6,7 @@ import { CaretSortIcon, MinusCircledIcon, Share1Icon, Share2Icon, Cross2Icon, Co
 import { log } from '../utils/logging';
 import { SearchEntry } from '@browse-dot-show/types'
 
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetClose } from '../components/ui/sheet'
-import { Badge } from "../components/ui/badge"
-import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover"
-import { Button } from "../components/ui/button"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetClose, Badge, Popover, PopoverContent, PopoverTrigger, Button } from '@browse-dot-show/ui'
 import AudioPlayer, { AudioPlayerRef } from "../components/AudioPlayer/AudioPlayer"
 import FullEpisodeTranscript from '../components/FullEpisodeTranscript'
 import PlayTimeLimitDialog from '../components/PlayTimeLimitDialog'

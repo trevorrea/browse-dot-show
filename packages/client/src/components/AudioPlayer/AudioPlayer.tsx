@@ -10,14 +10,14 @@ const baseIconButtonStyle = 'flex items-center justify-center w-10 h-10';
 
 // Custom play/pause icon elements (NOT buttons - the library will wrap them in buttons)
 const PlayIconElement = (
-  // Given that we can't use <Button> here, we'll roughly attempt to match the styling from `../ui/button.tsx`
+  // Given that we can't use <Button> here, we'll roughly attempt to match the styling from @browse-dot-show/ui button
   <div className={cn(baseIconButtonStyle, '-mt-1 bg-primary text-primary-foreground shadow-xs hover:bg-primary/90')}>
     <PlayIcon className="w-8 h-8" />
   </div>
 );
 
 const PauseIconElement = (
-  // Given that we can't use <Button> here, we'll roughly attempt to match the styling from `../ui/button.tsx`
+  // Given that we can't use <Button> here, we'll roughly attempt to match the styling from @browse-dot-show/ui button
   <div className={cn(baseIconButtonStyle, '-mt-1 bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60')}>
     <PauseIcon className="w-8 h-8" />
   </div>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { EpisodeInManifest, SearchEntry } from '@browse-dot-show/types'
 import { S3_HOSTED_FILES_BASE_URL } from '../constants'
 import { formatMillisecondsToMMSS } from '@/utils/time'
-import { Badge } from '../components/ui/badge'
+import { Badge } from '@browse-dot-show/ui'
 import { encodeFileKey } from '@/utils/encode'
 
 async function getFullEpisodeSearchEntryFile(fileKey: string, podcastId: string): Promise<SearchEntry[]> {

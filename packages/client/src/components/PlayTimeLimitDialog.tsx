@@ -1,14 +1,12 @@
 import { useEffect } from 'react';
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { Button } from './ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
+import { 
+  Button, 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
   DialogTitle,
-} from "./ui/dialog";
-import {
   Drawer,
   DrawerClose,
   DrawerContent,
@@ -16,8 +14,8 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "./ui/drawer";
-import { Badge } from './ui/badge';
+  Badge
+} from '@browse-dot-show/ui';
 import { trackEvent } from '../utils/goatcounter'
 import { PodcastId } from '@browse-dot-show/types';
 import siteConfig from '../config/site-config';
