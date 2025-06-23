@@ -4,8 +4,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@browse-dot-show/ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@browse-dot-show/ui'
 import { ThemeToggle } from '@browse-dot-show/blocks'
-import { SearchIcon, ExternalLinkIcon, GitHubLogoIcon } from '@radix-ui/react-icons'
-import deployedSites from './deployed-sites.config.jsonc'
+import { MagnifyingGlassIcon, ExternalLinkIcon, GitHubLogoIcon } from '@radix-ui/react-icons'
+import deployedSites from './deployed-sites.config'
 
 interface Site {
   isOriginSite: boolean;
@@ -84,7 +84,7 @@ function UniversalSearch() {
                 disabled={!selectedSite || !searchQuery.trim()}
                 size="icon"
               >
-                <SearchIcon className="h-4 w-4" />
+                <MagnifyingGlassIcon className="h-4 w-4" />
               </Button>
             </div>
           </div>

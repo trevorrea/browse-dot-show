@@ -6,7 +6,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
+} from "@browse-dot-show/ui"
 
 interface SearchResultsPaginationProps {
   currentPage: number;

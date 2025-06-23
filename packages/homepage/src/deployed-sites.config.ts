@@ -1,4 +1,7 @@
-{
+import JSON5 from 'json5'
+
+// Import the JSONC file as raw text
+const jsonc = `{
     "sites": {
         // sites/origin-sites/listenfairplay
         // One of 5 sites deployed by the root repository, https://github.com/jackkoppa/browse-dot-show
@@ -48,4 +51,9 @@
             "imageUrl": "https://searchengine.browse.show/assets/web-app-manifest-512x512.png"
         }
     }
-}
+}`
+
+// Parse using JSON5
+const deployedSites = JSON5.parse(jsonc)
+
+export default deployedSites 

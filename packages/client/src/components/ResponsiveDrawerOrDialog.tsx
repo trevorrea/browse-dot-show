@@ -1,16 +1,14 @@
 import * as React from "react"
 
 import { useMediaQuery } from "@/hooks/useMediaQuery"
-import { Button } from "@/components/ui/button"
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import {
   Drawer,
   DrawerClose,
   DrawerContent,
@@ -19,7 +17,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer"
+} from "@browse-dot-show/ui"
 
 interface ResponsiveDrawerOrDialogProps {
   childTrigger: React.ReactNode

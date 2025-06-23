@@ -1,6 +1,5 @@
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Button, Input } from "@browse-dot-show/ui"
 import siteConfig from '@/config/site-config'
 
 interface SearchInputProps {

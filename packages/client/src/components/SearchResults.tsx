@@ -7,7 +7,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@browse-dot-show/ui"
 import { SortOption } from '../types/search'
 
 interface SearchResultsProps {

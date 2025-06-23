@@ -5,8 +5,8 @@ import {
   Card,
   CardContent,
   CardFooter,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+  Badge,
+} from "@browse-dot-show/ui";
 
 import { formatDate } from '@/utils/date';
 import { formatMillisecondsToMMSS } from '@/utils/time';
