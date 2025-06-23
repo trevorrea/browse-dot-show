@@ -1,8 +1,8 @@
 {
-    "name": "@browse-dot-show/ui",
+    "name": "@browse-dot-show/blocks",
     "private": true,
     "version": "0.0.1",
-    "description": "shadcn UI components, used by client & homepage",
+    "description": "Shared React components & utils, for layout & simple shared functionality, used by client & homepage",
     "main": "./dist/index.js",
     "type": "module",
     "scripts": {
