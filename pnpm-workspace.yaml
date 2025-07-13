@@ -39,9 +39,9 @@ catalog:
 
 ignoredBuiltDependencies:
   - '@tailwindcss/oxide'
-  - msgpackr-extract
 
 injectWorkspacePackages: true
 
 onlyBuiltDependencies:
   - esbuild
+  - msgpackr-extract
