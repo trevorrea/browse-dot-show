@@ -7,7 +7,7 @@ import zlib from 'node:zlib';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { encode, decode, Decoder, Encoder } from '@msgpack/msgpack';
-import { pack, unpack } from 'msgpackr';
+import { pack, unpack, Packr } from 'msgpackr';
 
 // Type for Orama database instance
 export type OramaSearchDatabase = Awaited<ReturnType<typeof create>>;
@@ -101,7 +101,9 @@ function optimizedMsgPackREncode(data: any): Buffer {
   
   try {
     log.info(`Starting MsgPackR encode with schema optimization`);
-    const result = pack(data);
+    // Use Packr class with variableMapSize option to handle large objects that exceed 16-bit map size
+    const packr = new Packr({ variableMapSize: true });
+    const result = packr.pack(data);
     log.info(`MsgPackR encode completed in ${Date.now() - startTime}ms`);
     return result;
   } catch (error: any) {

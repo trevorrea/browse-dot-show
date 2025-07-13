@@ -1,7 +1,12 @@
 import * as fs from 'fs/promises';
 import { getSearchIndexKey, getLocalDbPath } from '@browse-dot-show/constants';
 import { SearchRequest, SearchResponse } from '@browse-dot-show/types';
-import { restoreFromFileStreaming, searchOramaIndex, OramaSearchDatabase, restoreFromFileStreamingOptimized } from '@browse-dot-show/database';
+import {
+  searchOramaIndex,
+  OramaSearchDatabase,
+  restoreFromFileStreamingOptimized,
+  restoreFromFileStreamingMsgPackR
+} from '@browse-dot-show/database';
 import { log } from '@browse-dot-show/logging';
 import {
   getFile,
@@ -30,7 +35,7 @@ function logMemoryUsage(stage: string, additionalInfo?: any) {
   if (log.getLevel() > log.levels.DEBUG) {
     return;
   }
-  
+
   const memory = getMemoryUsage();
   log.debug(`MEMORY [${stage}]: RSS=${memory.rss}MB, HeapTotal=${memory.heapTotal}MB, HeapUsed=${memory.heapUsed}MB, External=${memory.external}MB, ArrayBuffers=${memory.arrayBuffers}MB`, additionalInfo);
 }
@@ -82,7 +87,7 @@ async function initializeOramaIndex(forceFreshDBFileDownload?: boolean): Promise
   const searchIndexKey = getSearchIndexKey();
   const localDbPath = getLocalDbPath();
   logMemoryUsage('Before S3 Check', { searchIndexKey, localDbPath });
-  
+
   const indexFileExistsInS3 = await fileExists(searchIndexKey);
   if (!indexFileExistsInS3) {
     throw new Error(`Orama search index not found in S3 at: ${searchIndexKey}. Exiting.`);
@@ -96,11 +101,11 @@ async function initializeOramaIndex(forceFreshDBFileDownload?: boolean): Promise
     logMemoryUsage('Before S3 Download');
     indexFileBuffer = await getFile(searchIndexKey);
     logMemoryUsage('After S3 Download', { bufferSize: `${Math.round(indexFileBuffer.length / 1024 / 1024 * 100) / 100}MB` });
-    
+
     await fs.writeFile(localDbPath, indexFileBuffer);
     log.info(`Successfully downloaded and saved Orama index to ${localDbPath}`);
     logMemoryUsage('After File Write');
-    
+
     // Log the file size of the downloaded index file
     try {
       const stats = await fs.stat(localDbPath);
@@ -121,13 +126,13 @@ async function initializeOramaIndex(forceFreshDBFileDownload?: boolean): Promise
   // Restore the Orama index from the downloaded file using streaming approach
   try {
     logMemoryUsage('Before Orama Streaming Restoration');
-    const index = await restoreFromFileStreamingOptimized(localDbPath, 'gzip');
+    const index = await restoreFromFileStreamingMsgPackR(localDbPath, 'gzip');
     logMemoryUsage('After Orama Streaming Restoration');
-    
+
     log.info(`Orama search index loaded in ${Date.now() - startTime}ms`);
-    
+
     forceGarbageCollection();
-    
+
     // Cache the index for future invocations
     oramaIndex = index;
     logMemoryUsage('Final - Index Cached');
@@ -190,7 +195,7 @@ export async function handler(event: any): Promise<SearchResponse> {
     // Check if this is an API Gateway v2 event
     if (event.requestContext?.http?.method) {
       const method = event.requestContext.http.method;
-      
+
       if (method === 'GET') {
         // For API Gateway GET requests
         const queryParams = event.queryStringParameters || {};
@@ -272,9 +277,9 @@ export async function handler(event: any): Promise<SearchResponse> {
     // Perform the search using Orama
     logMemoryUsage('Before Search Execution');
     const searchResponse = await searchOramaIndex(index, searchRequest);
-    logMemoryUsage('After Search Execution', { 
-      totalHits: searchResponse.totalHits, 
-      hitCount: searchResponse.hits.length 
+    logMemoryUsage('After Search Execution', {
+      totalHits: searchResponse.totalHits,
+      hitCount: searchResponse.hits.length
     });
 
     return searchResponse;

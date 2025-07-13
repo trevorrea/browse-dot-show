@@ -6,6 +6,7 @@ import {
   createOramaIndex,
   insertMultipleSearchEntries,
   persistToFileStreaming,
+  persistToFileStreamingMsgPackR,
   type OramaSearchDatabase,
   type CompressionType
 } from '@browse-dot-show/database';
@@ -428,7 +429,7 @@ export async function handler(): Promise<any> {
   try {
     // Use streaming persistence with gzip compression
     const compression: CompressionType = 'gzip';
-    await persistToFileStreaming(oramaIndex, getLocalDbPath(), compression);
+    await persistToFileStreamingMsgPackR(oramaIndex, getLocalDbPath(), compression);
     logMemoryUsage('after persisting Orama index to file with streaming');
 
     // Upload to S3 (this will overwrite any existing index)
