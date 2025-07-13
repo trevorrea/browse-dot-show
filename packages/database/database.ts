@@ -7,7 +7,12 @@ import zlib from 'node:zlib';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { encode, decode, Decoder, Encoder } from '@msgpack/msgpack';
-import { parser } from 'stream-json';
+
+// TODO: Determine if there's a "more correct" method for this
+// from suggestion here: https://github.com/uhop/stream-json/issues/97#issuecomment-1408770135
+// Open issue here: https://github.com/uhop/stream-json/discussions/149
+import P from 'stream-json/Parser.js';
+const parser = P.parser
 
 // Type for Orama database instance
 export type OramaSearchDatabase = Awaited<ReturnType<typeof create>>;
@@ -361,8 +366,9 @@ export async function restoreFromFileStreamingOptimized(
 }
 
 /**
- * Persists Orama database to file using JSON streaming approach (no MsgPack)
+ * Persists Orama database to file using true JSON streaming approach (no MsgPack)
  * This eliminates the binary encode/decode step while avoiding Orama's built-in persistence limits
+ * by streaming JSON in chunks without creating a single large string
  * @param db - The Orama database instance
  * @param filePath - Path where to save the database file
  * @param compression - Compression type to use (none, gzip)
@@ -376,7 +382,7 @@ export async function persistToFileJsonStreaming(
   const totalStartTime = Date.now();
   
   try {
-    log.info(`Starting JSON streaming persistence to ${filePath} with ${compression} compression`);
+    log.info(`Starting true JSON streaming persistence to ${filePath} with ${compression} compression`);
     
     // Export database using Orama's save function
     const exportStartTime = Date.now();
@@ -384,31 +390,115 @@ export async function persistToFileJsonStreaming(
     const exportTime = Date.now() - exportStartTime;
     log.info(`Successfully exported Orama database for JSON streaming in ${exportTime}ms`);
     
-    // Convert to JSON string (this is the key difference - no binary encoding)
-    const encodeStartTime = Date.now();
-    const jsonString = JSON.stringify(dbExport);
-    const encodeTime = Date.now() - encodeStartTime;
-    log.info(`JSON stringify completed in ${encodeTime}ms, size: ${(jsonString.length / 1024 / 1024).toFixed(2)} MB`);
-    
-    // Stream to file with optional compression
+    // Create a streaming JSON writer that avoids the string length limit
     const streamStartTime = Date.now();
-    log.info(`Starting JSON file streaming with compression: ${compression}`);
+    log.info(`Starting true JSON file streaming with compression: ${compression}`);
     
+    // Create write stream with optional compression
+    let writeStream: NodeJS.WritableStream;
     if (compression === "none") {
-      await pipeline(Readable.from(jsonString), fs.createWriteStream(filePath));
+      writeStream = fs.createWriteStream(filePath);
     } else if (compression === "gzip") {
-      await pipeline(Readable.from(jsonString), zlib.createGzip(), fs.createWriteStream(filePath));
+      const gzipStream = zlib.createGzip();
+      const fileStream = fs.createWriteStream(filePath);
+      gzipStream.pipe(fileStream);
+      writeStream = gzipStream;
     } else {
       throw new Error(`Unknown compression type: ${compression}`);
     }
     
+    // Stream JSON in chunks to avoid string length limit
+    const encodeStartTime = Date.now();
+    let totalJsonSize = 0;
+    
+    // Write opening brace
+    writeStream.write('{');
+    
+    // Get all keys from the database export
+    const keys = Object.keys(dbExport);
+    const totalKeys = keys.length;
+    
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      const value = dbExport[key as keyof typeof dbExport];
+      
+      // Write key
+      const keyJson = JSON.stringify(key);
+      writeStream.write(keyJson);
+      writeStream.write(':');
+      totalJsonSize += keyJson.length + 1;
+      
+      // Write value - this is the critical part where we avoid stringifying the entire value at once
+      if (key === 'data' && Array.isArray(value)) {
+        // For the data array (which is usually the largest part), stream it in chunks
+        writeStream.write('[');
+        totalJsonSize += 1;
+        
+        for (let j = 0; j < value.length; j++) {
+          if (j > 0) {
+            writeStream.write(',');
+            totalJsonSize += 1;
+          }
+          
+          // Stringify each item individually to avoid large strings
+          const itemJson = JSON.stringify(value[j]);
+          writeStream.write(itemJson);
+          totalJsonSize += itemJson.length;
+          
+          // Log progress for large arrays
+          if (j > 0 && j % 10000 === 0) {
+            log.debug(`Streamed ${j}/${value.length} data items (${((j / value.length) * 100).toFixed(1)}%)`);
+          }
+        }
+        
+        writeStream.write(']');
+        totalJsonSize += 1;
+      } else {
+        // For other properties, stringify normally (they're usually smaller)
+        const valueJson = JSON.stringify(value);
+        writeStream.write(valueJson);
+        totalJsonSize += valueJson.length;
+      }
+      
+      // Add comma if not the last key
+      if (i < keys.length - 1) {
+        writeStream.write(',');
+        totalJsonSize += 1;
+      }
+      
+      // Log progress for keys
+      if (i > 0 && i % 10 === 0) {
+        log.debug(`Streamed ${i}/${totalKeys} database keys (${((i / totalKeys) * 100).toFixed(1)}%)`);
+      }
+    }
+    
+    // Write closing brace
+    writeStream.write('}');
+    totalJsonSize += 1;
+    
+    // End the stream
+    writeStream.end();
+    
+    // Wait for the stream to finish
+    await new Promise<void>((resolve, reject) => {
+      writeStream.on('finish', () => {
+        resolve();
+      });
+      writeStream.on('error', (error) => {
+        reject(error);
+      });
+    });
+    
+    const encodeTime = Date.now() - encodeStartTime;
     const streamTime = Date.now() - streamStartTime;
-    log.info(`JSON file streaming completed in ${streamTime}ms (${(streamTime / 1000).toFixed(2)}s) with compression: ${compression}`);
+    
+    log.info(`True JSON streaming completed in ${streamTime}ms (${(streamTime / 1000).toFixed(2)}s) with compression: ${compression}`);
+    log.info(`JSON size: ${(totalJsonSize / 1024 / 1024).toFixed(2)} MB`);
     
     // Get file size for logging and compression ratio calculation
     const stats = await fs.promises.stat(filePath);
     const fileSize = stats.size;
-    const compressionRatio = ((1 - fileSize / jsonString.length) * 100);
+    const compressionRatio = ((1 - fileSize / totalJsonSize) * 100);
     
     const totalTime = Date.now() - totalStartTime;
     log.info(`Successfully persisted Orama database to ${filePath} (${(fileSize / 1024 / 1024).toFixed(2)} MB, ${compressionRatio.toFixed(1)}% compression)`);
@@ -422,18 +512,19 @@ export async function persistToFileJsonStreaming(
       compressionRatio
     };
     
-    log.info(`⏱️ JSON streaming persistence benchmark: Total: ${totalTime}ms, Export: ${exportTime}ms, Encode: ${encodeTime}ms, Stream: ${streamTime}ms`);
+    log.info(`⏱️ True JSON streaming persistence benchmark: Total: ${totalTime}ms, Export: ${exportTime}ms, Encode: ${encodeTime}ms, Stream: ${streamTime}ms`);
     
     return benchmark;
   } catch (error: any) {
     const totalTime = Date.now() - totalStartTime;
-    log.error(`Error in JSON streaming persistence after ${totalTime}ms: ${error.message}`, error);
+    log.error(`Error in true JSON streaming persistence after ${totalTime}ms: ${error.message}`, error);
     throw error;
   }
 }
 
 /**
- * Restores Orama database from JSON file using streaming decompression (no MsgPack)
+ * Restores Orama database from JSON file using SAX-style streaming JSON parser
+ * This processes JSON incrementally without creating large strings using stream-json
  * @param filePath - Path to the database file
  * @param compression - Compression type that was used (none, gzip)
  * @returns Promise resolving to the restored Orama database instance
@@ -444,7 +535,7 @@ export async function restoreFromFileJsonStreaming(
 ): Promise<OramaSearchDatabase> {
   const startTime = Date.now();
   try {
-    log.info(`Starting JSON streaming restore from ${filePath} with ${compression} compression`);
+    log.info(`Starting SAX-style JSON streaming restore from ${filePath} with ${compression} compression`);
     
     // Create a placeholder database
     const dbCreateStart = Date.now();
@@ -453,79 +544,129 @@ export async function restoreFromFileJsonStreaming(
     });
     log.info(`Database schema created in ${Date.now() - dbCreateStart}ms`);
     
-    // Use streaming decompression to minimize memory usage
-    const streamStart = Date.now();
-    let chunks: Buffer[] = [];
-    let totalSize = 0;
-    
+    // Create read stream with optional decompression
+    let readStream: NodeJS.ReadableStream;
     if (compression === "none") {
-      // For uncompressed files, read directly
-      const fileBuffer = await fs.promises.readFile(filePath);
-      chunks = [fileBuffer];
-      totalSize = fileBuffer.length;
-      log.info(`File read (uncompressed) in ${Date.now() - streamStart}ms, size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
-    } else {
-      // Create decompression stream
-      let decompressionStream;
-      if (compression === "gzip") {
-        decompressionStream = zlib.createGunzip();
-      } else {
-        throw new Error(`Unknown compression type: ${compression}`);
-      }
-      
-      // Stream the file through decompression
+      readStream = fs.createReadStream(filePath);
+    } else if (compression === "gzip") {
       const fileStream = fs.createReadStream(filePath);
-      const decompressedStream = fileStream.pipe(decompressionStream);
-      
-      await new Promise<void>((resolve, reject) => {
-        decompressedStream.on('data', (chunk: Buffer) => {
-          chunks.push(chunk);
-          totalSize += chunk.length;
-        });
-        
-        decompressedStream.on('end', () => {
-          log.info(`Streaming decompression (${compression}) completed in ${Date.now() - streamStart}ms, decompressed size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
-          resolve();
-        });
-        
-        decompressedStream.on('error', (error) => {
-          log.error(`Streaming decompression failed after ${Date.now() - streamStart}ms: ${error.message}`);
-          reject(error);
-        });
-      });
+      readStream = fileStream.pipe(zlib.createGunzip());
+    } else {
+      throw new Error(`Unknown compression type: ${compression}`);
     }
     
-    // Combine chunks into single buffer
-    const combineStart = Date.now();
-    const fileBuffer = Buffer.concat(chunks);
-    log.info(`Buffer concatenation completed in ${Date.now() - combineStart}ms`);
+    // Use stream-json parser to process JSON incrementally
+    const streamStart = Date.now();
+    const jsonParser = parser();
     
-    // Clear chunks array to free memory
-    chunks = [];
+    // Collect the parsed data structure
+    let parsedData: any = {};
+    let currentPath: string[] = [];
+    let inDataArray = false;
+    let dataEntries: any[] = [];
+    let entriesProcessed = 0;
+    let totalSize = 0;
     
-    // Parse JSON (this replaces the MsgPack decode step)
-    const jsonParseStart = Date.now();
-    const jsonString = fileBuffer.toString('utf8');
-    const decoded = JSON.parse(jsonString);
-    const jsonParseTime = Date.now() - jsonParseStart;
-    log.info(`JSON parse completed in ${jsonParseTime}ms`);
+    await new Promise<void>((resolve, reject) => {
+      jsonParser.on('data', (data) => {
+        totalSize += JSON.stringify(data).length;
+        
+        if (data.name === 'startObject') {
+          // Start of an object
+          if (currentPath.length === 0) {
+            // Root object
+            parsedData = {};
+          } else if (currentPath.join('.') === 'data') {
+            // We're inside the data array, this is a search entry
+            inDataArray = true;
+          }
+        } else if (data.name === 'endObject') {
+          // End of an object
+          if (inDataArray && currentPath.join('.') === 'data') {
+            // We've finished parsing a search entry
+            entriesProcessed++;
+            if (entriesProcessed % 10000 === 0) {
+              log.info(`Processed ${entriesProcessed} search entries...`);
+            }
+          }
+          inDataArray = false;
+          currentPath.pop();
+        } else if (data.name === 'startArray') {
+          // Start of an array
+          if (currentPath.join('.') === 'data') {
+            // This is the data array
+            dataEntries = [];
+            parsedData.data = dataEntries;
+          }
+        } else if (data.name === 'endArray') {
+          // End of an array
+          currentPath.pop();
+        } else if (data.name === 'keyValue') {
+          // Key in a key-value pair
+          const key = data.value;
+          if (currentPath.length === 0) {
+            // Top-level key
+            parsedData[key] = null; // Will be filled when value is parsed
+          }
+          currentPath.push(key);
+        } else if (data.name === 'value') {
+          // Value in a key-value pair
+          const value = data.value;
+          const path = currentPath.join('.');
+          
+          if (path === 'data') {
+            // This is a search entry in the data array
+            dataEntries.push(value);
+          } else if (currentPath.length === 1) {
+            // Top-level value
+            const key = currentPath[0];
+            parsedData[key] = value;
+            currentPath.pop();
+          } else {
+            // Nested value
+            let current = parsedData;
+            for (let i = 0; i < currentPath.length - 1; i++) {
+              if (!current[currentPath[i]]) {
+                current[currentPath[i]] = {};
+              }
+              current = current[currentPath[i]];
+            }
+            current[currentPath[currentPath.length - 1]] = value;
+            currentPath.pop();
+          }
+        }
+      });
+      
+      jsonParser.on('end', () => {
+        log.info(`SAX-style JSON parsing completed in ${Date.now() - streamStart}ms, processed ${entriesProcessed} entries, total size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
+        resolve();
+      });
+      
+      jsonParser.on('error', (error) => {
+        log.error(`SAX-style JSON parsing failed after ${Date.now() - streamStart}ms: ${error.message}`);
+        reject(error);
+      });
+      
+      // Pipe the read stream to the JSON parser
+      readStream.pipe(jsonParser);
+    });
     
     // Load into Orama database
     const oramaLoadStart = Date.now();
-    await load(db, decoded as any);
+    await load(db, parsedData as any);
     log.info(`Orama database load completed in ${Date.now() - oramaLoadStart}ms`);
     
     const totalTime = Date.now() - startTime;
     const oramaLoadTime = Date.now() - oramaLoadStart;
-    const streamDecompressTime = jsonParseStart - streamStart;
+    const streamDecompressTime = oramaLoadStart - streamStart;
     
-    log.info(`Successfully restored Orama database from ${filePath} in ${totalTime}ms total (JSON streaming)`);
-    log.info(`⏱️ JSON streaming restore timing breakdown: Streaming decompress: ${streamDecompressTime}ms, JSON parse: ${jsonParseTime}ms, Orama load: ${oramaLoadTime}ms`);
+    log.info(`Successfully restored Orama database from ${filePath} in ${totalTime}ms total (SAX-style streaming)`);
+    log.info(`⏱️ SAX-style streaming restore timing breakdown: Streaming decompress: ${streamDecompressTime}ms, Orama load: ${oramaLoadTime}ms`);
     
     return db as OramaSearchDatabase;
   } catch (error: any) {
     const totalTime = Date.now() - startTime;
-    log.error(`Error in JSON streaming restore after ${totalTime}ms: ${error.message}`, error);
+    log.error(`Error in SAX-style JSON streaming restore after ${totalTime}ms: ${error.message}`, error);
     throw error;
   }
 }
