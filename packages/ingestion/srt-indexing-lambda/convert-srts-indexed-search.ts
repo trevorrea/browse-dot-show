@@ -6,6 +6,7 @@ import {
   createOramaIndex,
   insertMultipleSearchEntries,
   persistToFileStreaming,
+  persistToFileJsonStreaming,
   type OramaSearchDatabase,
   type CompressionType
 } from '@browse-dot-show/database';
@@ -428,7 +429,19 @@ export async function handler(): Promise<any> {
   try {
     // Use streaming persistence with gzip compression
     const compression: CompressionType = 'gzip';
-    await persistToFileStreaming(oramaIndex, getLocalDbPath(), compression);
+    
+    // Check if we should use JSON streaming (for testing)
+    const useJsonStreaming = process.env.USE_JSON_STREAMING === 'true';
+    
+    if (useJsonStreaming) {
+      log.info('Using JSON streaming persistence (experimental)...');
+      const benchmark = await persistToFileJsonStreaming(oramaIndex, getLocalDbPath(), compression);
+      log.info(`JSON streaming completed: ${benchmark.totalTime}ms, ${(benchmark.fileSize / 1024 / 1024).toFixed(2)}MB, ${benchmark.compressionRatio.toFixed(1)}% compression`);
+    } else {
+      log.info('Using MsgPack streaming persistence...');
+      await persistToFileStreaming(oramaIndex, getLocalDbPath(), compression);
+    }
+    
     logMemoryUsage('after persisting Orama index to file with streaming');
 
     // Upload to S3 (this will overwrite any existing index)

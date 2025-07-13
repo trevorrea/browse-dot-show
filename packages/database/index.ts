@@ -5,6 +5,10 @@ export {
   searchOramaIndex,
   persistToFileStreaming,
   restoreFromFileStreamingOptimized,
+  persistToFileJsonStreaming,
+  restoreFromFileJsonStreaming,
+  benchmarkPersistenceApproaches,
   type OramaSearchDatabase,
-  type CompressionType
+  type CompressionType,
+  type PerformanceBenchmark
 } from './database.js';

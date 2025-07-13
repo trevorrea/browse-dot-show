@@ -13,6 +13,7 @@
     },
     "devDependencies": {
         "@browse-dot-show/types": "workspace:*",
+        "@types/node": "^20.17.25",
         "typescript": "catalog:"
     },
     "exports": {

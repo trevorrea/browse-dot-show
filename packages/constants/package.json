@@ -9,6 +9,7 @@
         "build": "tsc"
     },
     "devDependencies": {
+        "@types/node": "^24.0.13",
         "typescript": "catalog:"
     },
     "exports": {

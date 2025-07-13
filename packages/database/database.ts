@@ -7,12 +7,23 @@ import zlib from 'node:zlib';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { encode, decode, Decoder, Encoder } from '@msgpack/msgpack';
+import { parser } from 'stream-json';
 
 // Type for Orama database instance
 export type OramaSearchDatabase = Awaited<ReturnType<typeof create>>;
 
-// Compression types for streaming persistence
-export type CompressionType = "none" | "gzip" | "brotli";
+// Compression types for streaming persistence (removed brotli as requested)
+export type CompressionType = "none" | "gzip";
+
+// Performance benchmark results type
+export interface PerformanceBenchmark {
+  totalTime: number;
+  exportTime: number;
+  encodeTime: number;
+  streamTime: number;
+  fileSize: number;
+  compressionRatio: number;
+}
 
 // Reusable encoder instance for better performance
 const msgpackEncoder = new Encoder({
@@ -230,8 +241,6 @@ export async function persistToFileStreaming(
       await pipeline(Readable.from(bufferExport), fs.createWriteStream(filePath));
     } else if (compression === "gzip") {
       await pipeline(Readable.from(bufferExport), zlib.createGzip(), fs.createWriteStream(filePath));
-    } else if (compression === "brotli") {
-      await pipeline(Readable.from(bufferExport), zlib.createBrotliCompress(), fs.createWriteStream(filePath));
     } else {
       throw new Error(`Unknown compression type: ${compression}`);
     }
@@ -349,6 +358,238 @@ export async function restoreFromFileStreamingOptimized(
     log.error(`Error in optimized streaming restore after ${totalTime}ms: ${error.message}`, error);
     throw error;
   }
+}
+
+/**
+ * Persists Orama database to file using JSON streaming approach (no MsgPack)
+ * This eliminates the binary encode/decode step while avoiding Orama's built-in persistence limits
+ * @param db - The Orama database instance
+ * @param filePath - Path where to save the database file
+ * @param compression - Compression type to use (none, gzip)
+ * @returns Promise resolving to performance benchmark results
+ */
+export async function persistToFileJsonStreaming(
+  db: OramaSearchDatabase, 
+  filePath: string, 
+  compression: CompressionType = "gzip"
+): Promise<PerformanceBenchmark> {
+  const totalStartTime = Date.now();
+  
+  try {
+    log.info(`Starting JSON streaming persistence to ${filePath} with ${compression} compression`);
+    
+    // Export database using Orama's save function
+    const exportStartTime = Date.now();
+    const dbExport = await save(db);
+    const exportTime = Date.now() - exportStartTime;
+    log.info(`Successfully exported Orama database for JSON streaming in ${exportTime}ms`);
+    
+    // Convert to JSON string (this is the key difference - no binary encoding)
+    const encodeStartTime = Date.now();
+    const jsonString = JSON.stringify(dbExport);
+    const encodeTime = Date.now() - encodeStartTime;
+    log.info(`JSON stringify completed in ${encodeTime}ms, size: ${(jsonString.length / 1024 / 1024).toFixed(2)} MB`);
+    
+    // Stream to file with optional compression
+    const streamStartTime = Date.now();
+    log.info(`Starting JSON file streaming with compression: ${compression}`);
+    
+    if (compression === "none") {
+      await pipeline(Readable.from(jsonString), fs.createWriteStream(filePath));
+    } else if (compression === "gzip") {
+      await pipeline(Readable.from(jsonString), zlib.createGzip(), fs.createWriteStream(filePath));
+    } else {
+      throw new Error(`Unknown compression type: ${compression}`);
+    }
+    
+    const streamTime = Date.now() - streamStartTime;
+    log.info(`JSON file streaming completed in ${streamTime}ms (${(streamTime / 1000).toFixed(2)}s) with compression: ${compression}`);
+    
+    // Get file size for logging and compression ratio calculation
+    const stats = await fs.promises.stat(filePath);
+    const fileSize = stats.size;
+    const compressionRatio = ((1 - fileSize / jsonString.length) * 100);
+    
+    const totalTime = Date.now() - totalStartTime;
+    log.info(`Successfully persisted Orama database to ${filePath} (${(fileSize / 1024 / 1024).toFixed(2)} MB, ${compressionRatio.toFixed(1)}% compression)`);
+    
+    const benchmark: PerformanceBenchmark = {
+      totalTime,
+      exportTime,
+      encodeTime,
+      streamTime,
+      fileSize,
+      compressionRatio
+    };
+    
+    log.info(`⏱️ JSON streaming persistence benchmark: Total: ${totalTime}ms, Export: ${exportTime}ms, Encode: ${encodeTime}ms, Stream: ${streamTime}ms`);
+    
+    return benchmark;
+  } catch (error: any) {
+    const totalTime = Date.now() - totalStartTime;
+    log.error(`Error in JSON streaming persistence after ${totalTime}ms: ${error.message}`, error);
+    throw error;
+  }
+}
+
+/**
+ * Restores Orama database from JSON file using streaming decompression (no MsgPack)
+ * @param filePath - Path to the database file
+ * @param compression - Compression type that was used (none, gzip)
+ * @returns Promise resolving to the restored Orama database instance
+ */
+export async function restoreFromFileJsonStreaming(
+  filePath: string, 
+  compression: CompressionType = "gzip"
+): Promise<OramaSearchDatabase> {
+  const startTime = Date.now();
+  try {
+    log.info(`Starting JSON streaming restore from ${filePath} with ${compression} compression`);
+    
+    // Create a placeholder database
+    const dbCreateStart = Date.now();
+    const db = await create({
+      schema: ORAMA_SEARCH_SCHEMA
+    });
+    log.info(`Database schema created in ${Date.now() - dbCreateStart}ms`);
+    
+    // Use streaming decompression to minimize memory usage
+    const streamStart = Date.now();
+    let chunks: Buffer[] = [];
+    let totalSize = 0;
+    
+    if (compression === "none") {
+      // For uncompressed files, read directly
+      const fileBuffer = await fs.promises.readFile(filePath);
+      chunks = [fileBuffer];
+      totalSize = fileBuffer.length;
+      log.info(`File read (uncompressed) in ${Date.now() - streamStart}ms, size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
+    } else {
+      // Create decompression stream
+      let decompressionStream;
+      if (compression === "gzip") {
+        decompressionStream = zlib.createGunzip();
+      } else {
+        throw new Error(`Unknown compression type: ${compression}`);
+      }
+      
+      // Stream the file through decompression
+      const fileStream = fs.createReadStream(filePath);
+      const decompressedStream = fileStream.pipe(decompressionStream);
+      
+      await new Promise<void>((resolve, reject) => {
+        decompressedStream.on('data', (chunk: Buffer) => {
+          chunks.push(chunk);
+          totalSize += chunk.length;
+        });
+        
+        decompressedStream.on('end', () => {
+          log.info(`Streaming decompression (${compression}) completed in ${Date.now() - streamStart}ms, decompressed size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
+          resolve();
+        });
+        
+        decompressedStream.on('error', (error) => {
+          log.error(`Streaming decompression failed after ${Date.now() - streamStart}ms: ${error.message}`);
+          reject(error);
+        });
+      });
+    }
+    
+    // Combine chunks into single buffer
+    const combineStart = Date.now();
+    const fileBuffer = Buffer.concat(chunks);
+    log.info(`Buffer concatenation completed in ${Date.now() - combineStart}ms`);
+    
+    // Clear chunks array to free memory
+    chunks = [];
+    
+    // Parse JSON (this replaces the MsgPack decode step)
+    const jsonParseStart = Date.now();
+    const jsonString = fileBuffer.toString('utf8');
+    const decoded = JSON.parse(jsonString);
+    const jsonParseTime = Date.now() - jsonParseStart;
+    log.info(`JSON parse completed in ${jsonParseTime}ms`);
+    
+    // Load into Orama database
+    const oramaLoadStart = Date.now();
+    await load(db, decoded as any);
+    log.info(`Orama database load completed in ${Date.now() - oramaLoadStart}ms`);
+    
+    const totalTime = Date.now() - startTime;
+    const oramaLoadTime = Date.now() - oramaLoadStart;
+    const streamDecompressTime = jsonParseStart - streamStart;
+    
+    log.info(`Successfully restored Orama database from ${filePath} in ${totalTime}ms total (JSON streaming)`);
+    log.info(`⏱️ JSON streaming restore timing breakdown: Streaming decompress: ${streamDecompressTime}ms, JSON parse: ${jsonParseTime}ms, Orama load: ${oramaLoadTime}ms`);
+    
+    return db as OramaSearchDatabase;
+  } catch (error: any) {
+    const totalTime = Date.now() - startTime;
+    log.error(`Error in JSON streaming restore after ${totalTime}ms: ${error.message}`, error);
+    throw error;
+  }
+}
+
+/**
+ * Performance benchmark function to compare MsgPack vs JSON streaming approaches
+ * @param db - The Orama database instance to test
+ * @param testFilePath - Path for the test file
+ * @returns Promise resolving to comparison results
+ */
+export async function benchmarkPersistenceApproaches(
+  db: OramaSearchDatabase,
+  testFilePath: string
+): Promise<{
+  msgpack: PerformanceBenchmark;
+  json: PerformanceBenchmark;
+  comparison: {
+    totalTimeDiff: number;
+    encodeTimeDiff: number;
+    fileSizeDiff: number;
+    compressionRatioDiff: number;
+  };
+}> {
+  log.info('Starting persistence approach benchmark...');
+  
+  // Test MsgPack approach
+  const msgpackPath = `${testFilePath}.msgpack`;
+  const msgpackStart = Date.now();
+  await persistToFileStreaming(db, msgpackPath, 'gzip');
+  const msgpackTotalTime = Date.now() - msgpackStart;
+  
+  // Get MsgPack file stats for comparison
+  const msgpackStats = await fs.promises.stat(msgpackPath);
+  const msgpackFileSize = msgpackStats.size;
+  
+  // Test JSON approach
+  const jsonPath = `${testFilePath}.json`;
+  const jsonResult = await persistToFileJsonStreaming(db, jsonPath, 'gzip');
+  
+  // Calculate differences
+  const comparison = {
+    totalTimeDiff: jsonResult.totalTime - msgpackTotalTime,
+    encodeTimeDiff: jsonResult.encodeTime, // MsgPack doesn't have separate encode time
+    fileSizeDiff: jsonResult.fileSize - msgpackFileSize,
+    compressionRatioDiff: jsonResult.compressionRatio // MsgPack doesn't have compression ratio
+  };
+  
+  log.info('📊 Persistence Benchmark Results:');
+  log.info(`MsgPack: Total: ${msgpackTotalTime}ms, Size: ${(msgpackFileSize / 1024 / 1024).toFixed(2)}MB`);
+  log.info(`JSON: Total: ${jsonResult.totalTime}ms, Encode: ${jsonResult.encodeTime}ms, Size: ${(jsonResult.fileSize / 1024 / 1024).toFixed(2)}MB, Compression: ${jsonResult.compressionRatio.toFixed(1)}%`);
+  log.info(`Difference: Total: ${comparison.totalTimeDiff > 0 ? '+' : ''}${comparison.totalTimeDiff}ms, Size: ${comparison.fileSizeDiff > 0 ? '+' : ''}${(comparison.fileSizeDiff / 1024 / 1024).toFixed(2)}MB`);
+  
+  return {
+    msgpack: { 
+      totalTime: msgpackTotalTime,
+      exportTime: 0, // Not measured separately
+      encodeTime: 0, // Not measured separately
+      streamTime: msgpackTotalTime, // Approximate
+      fileSize: msgpackFileSize,
+      compressionRatio: 0 // Not calculated
+    },
+    json: jsonResult,
+    comparison
+  };
 }
 
 
