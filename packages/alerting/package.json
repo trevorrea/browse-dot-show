@@ -5,16 +5,18 @@
     "description": "Alerting for the browse.show platform - primarily sending ingestion Lambda errors to Slack",
     "main": "./dist/index.js",
     "type": "module",
-    "scripts": {
-        "build": "tsc"
-    },
+      "scripts": {
+    "build": "tsc",
+    "test:alerting": "tsx test-alerting.ts"
+  },
     "dependencies": {
         "@slack/web-api": "^7.0.2"
     },
-    "devDependencies": {
-        "@types/node": "^20.0.0",
-        "typescript": "catalog:"
-    },
+      "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
+  },
     "exports": {
         ".": "./dist/index.js"
     },

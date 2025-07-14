@@ -19,6 +19,7 @@
     "@aws-sdk/client-s3": "catalog:",
     "@aws-sdk/credential-provider-sso": "catalog:",
     "@aws-sdk/s3-request-presigner": "catalog:",
+    "@browse-dot-show/alerting": "workspace:*",
     "@browse-dot-show/config": "workspace:*",
     "@browse-dot-show/constants": "workspace:*",
     "@browse-dot-show/s3": "workspace:*",
