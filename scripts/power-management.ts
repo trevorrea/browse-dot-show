@@ -1,8 +1,9 @@
 #!/usr/bin/env tsx
 
 import { execSync, spawn } from 'child_process';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import * as readline from 'readline';
 
 interface PowerStatus {
   isOnAC: boolean;
@@ -10,119 +11,410 @@ interface PowerStatus {
   isPoweredOff: boolean;
 }
 
-interface ScheduleConfig {
-  wakeTime: string; // "01:00:00" format
-  owner: string;
+interface PowerConfig {
+  isConfigured: boolean;
+  wakeTime: string;
+  hasScheduledEvents: boolean;
+  lidwake: boolean;
+  womp: boolean;
+  acwake: boolean;
+  ttyskeepawake: boolean;
 }
 
 class MacPowerManager {
-  private readonly CONFIG: ScheduleConfig = {
-    wakeTime: "01:00:00", // 1:00 AM local time - TODO: make configurable in future
-    owner: "browse-dot-show-ingestion"
-  };
-
-  private readonly MIN_BATTERY_LEVEL = 50; // Don't run script if battery < 50%
+  private readonly CONFIG_FILE = join(process.cwd(), '.power-management-config');
+  private readonly WAKE_TIME = "01:00:00"; // 1:00 AM local time
+  private readonly MIN_BATTERY_LEVEL = 50;
+  private rl: readline.Interface;
 
   constructor() {
     this.ensureRunningOnMac();
-    this.ensureRootPrivileges();
+    this.rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
   }
 
   /**
-   * Main entry point for the power management script
+   * Main entry point - interactive power management
    */
   async run(): Promise<void> {
     try {
+      // Check if this is a scheduled wake-up call (internal use)
       const args = process.argv.slice(2);
-      
-      if (args.includes('--help') || args.includes('-h')) {
-        this.showHelp();
-        return;
-      }
-
-      if (args.includes('--setup-schedule')) {
-        await this.setupSchedule();
-        return;
-      }
-
-      if (args.includes('--clear-schedule')) {
-        await this.clearSchedule();
-        return;
-      }
-
-      if (args.includes('--status')) {
-        await this.showStatus();
-        return;
-      }
-
       if (args.includes('--wake-and-run')) {
         await this.wakeAndRunPipeline();
         return;
       }
 
-      // Default behavior: setup schedule and show status
-      await this.setupSchedule();
-      await this.showStatus();
+      this.showWelcomeMessage();
+      await this.showCurrentConfiguration();
+      await this.handleUserInteraction();
       
     } catch (error) {
-      console.error('Power management error:', error);
+      console.error('\n❌ Error:', error instanceof Error ? error.message : error);
       process.exit(1);
+    } finally {
+      this.rl.close();
     }
   }
 
   /**
-   * Sets up the daily 1 AM wake schedule
+   * Shows welcome message and docs
    */
-  private async setupSchedule(): Promise<void> {
-    console.log('Setting up power management schedule...\n');
+  private showWelcomeMessage(): void {
+    console.log(`
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          Mac Power Management Setup                          ║
+║                         for Ingestion Pipeline Scheduling                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+This script configures your Mac to automatically:
+  • Wake up at 1:00 AM daily (works with lid closed/open)
+  • Run the ingestion pipeline if conditions are met
+  • Return to sleep/off state after completion
+
+POWER CONDITIONS:
+  ✅ AC Power: Always runs pipeline
+  🔋 Battery Power: Only runs if battery > 50%
+  
+BEHAVIOR:
+  • If Mac was powered off → shuts down after completion
+  • If Mac was sleeping → goes back to sleep after completion
+  • Works reliably whether MacBook lid is open or closed
+
+REQUIREMENTS:
+  • Must run with sudo: sudo pnpm run power:manage
+  • Only works on macOS systems
+`);
+  }
+
+  /**
+   * Shows current power management configuration
+   */
+  private async showCurrentConfiguration(): Promise<void> {
+    console.log('═══════════════════════════════════════════════════════════════════════════════');
+    console.log('                           CURRENT CONFIGURATION');
+    console.log('═══════════════════════════════════════════════════════════════════════════════\n');
+
+    // Check if we have sudo privileges
+    if (!this.hasSudoPrivileges()) {
+      console.log('❌ MISSING SUDO PRIVILEGES');
+      console.log('   This script requires sudo to read/modify power management settings.');
+      console.log('   Please run: sudo pnpm run power:manage\n');
+      return;
+    }
+
+    const config = this.getCurrentConfig();
+    
+    // Power Management Status
+    console.log('🔋 POWER MANAGEMENT STATUS:');
+    if (config.isConfigured) {
+      console.log('   ✅ Power management is configured for ingestion pipeline');
+      console.log('   ✅ LaunchAgent is set up for automatic execution');
+    } else {
+      console.log('   ⚠️  Power management has not been configured yet');
+      if (existsSync(this.CONFIG_FILE)) {
+        console.log('   ⚠️  Config file exists but LaunchAgent is missing');
+      }
+      if (existsSync(this.getLaunchAgentPath())) {
+        console.log('   ⚠️  LaunchAgent exists but config file is missing');
+      }
+    }
+    console.log();
+
+    // Scheduled Events
+    console.log('⏰ SCHEDULED EVENTS:');
+    if (config.hasScheduledEvents) {
+      console.log(`   ✅ Daily wake scheduled at ${this.WAKE_TIME} (1:00 AM local time)`);
+      console.log('   📅 Schedule: Every day of the week (MTWRFSU)');
+      
+      try {
+        const scheduleOutput = this.executeCommand('pmset -g sched', false);
+        if (scheduleOutput.includes('wakeorpoweron') || scheduleOutput.includes('wakepoweron')) {
+          console.log('   🎯 Next scheduled wake: Check output below');
+        }
+      } catch (e) {
+        // Ignore errors in detailed schedule check
+      }
+    } else {
+      console.log('   ❌ No scheduled wake events configured');
+    }
+    console.log();
+
+    // Power Settings
+    console.log('⚙️  POWER SETTINGS:');
+    console.log(`   Lid Wake: ${config.lidwake ? '✅ Enabled' : '❌ Disabled'} ${config.lidwake ? '(Mac wakes when lid opened)' : '(Mac won\'t wake when lid opened)'}`);
+    console.log(`   AC Wake: ${config.acwake ? '✅ Enabled' : '❌ Disabled'} ${config.acwake ? '(Mac wakes when power source changes)' : '(Mac won\'t wake on power changes)'}`);
+    console.log(`   Wake on LAN: ${config.womp ? '✅ Enabled' : '❌ Disabled'} ${config.womp ? '(Mac can wake via network)' : '(No network wake capability)'}`);
+    console.log(`   TTY Keep Awake: ${config.ttyskeepawake ? '✅ Enabled' : '❌ Disabled'} ${config.ttyskeepawake ? '(SSH sessions prevent sleep)' : '(SSH sessions won\'t prevent sleep)'}`);
+    console.log();
+
+    // Current Power Source
+    console.log('🔌 CURRENT POWER STATUS:');
+    try {
+      const powerStatus = this.getPowerStatus();
+      console.log(`   Power Source: ${powerStatus.isOnAC ? '🔌 AC Power Connected' : '🔋 Running on Battery'}`);
+      console.log(`   Battery Level: ${powerStatus.batteryLevel}%`);
+      
+      if (!powerStatus.isOnAC && powerStatus.batteryLevel < this.MIN_BATTERY_LEVEL) {
+        console.log(`   ⚠️  Battery below minimum threshold (${this.MIN_BATTERY_LEVEL}%) - pipeline would be skipped`);
+      }
+    } catch (e) {
+      console.log('   ❓ Could not determine current power status');
+    }
+    console.log();
+
+    // Detailed pmset output
+    console.log('📋 DETAILED POWER SETTINGS:');
+    try {
+      const pmsetOutput = this.executeCommand('pmset -g', false);
+      console.log(pmsetOutput.split('\n').map(line => `   ${line}`).join('\n'));
+    } catch (e) {
+      console.log('   ❌ Could not read detailed power settings');
+    }
+    console.log();
+
+    console.log('📅 DETAILED SCHEDULE:');
+    try {
+      const schedOutput = this.executeCommand('pmset -g sched', false);
+      if (schedOutput.trim() === 'No scheduled events.') {
+        console.log('   No scheduled events found.');
+      } else {
+        console.log(schedOutput.split('\n').map(line => `   ${line}`).join('\n'));
+      }
+    } catch (e) {
+      console.log('   ❌ Could not read schedule information');
+    }
+    console.log();
+  }
+
+  /**
+   * Handles user interaction for configuration
+   */
+  private async handleUserInteraction(): Promise<void> {
+    const config = this.getCurrentConfig();
+    
+    if (!this.hasSudoPrivileges()) {
+      console.log('Please restart with sudo privileges to make changes.');
+      return;
+    }
+
+    if (!config.isConfigured || !config.hasScheduledEvents) {
+      console.log('═══════════════════════════════════════════════════════════════════════════════');
+      console.log('                              INITIAL SETUP REQUIRED');
+      console.log('═══════════════════════════════════════════════════════════════════════════════\n');
+      
+      const shouldSetup = await this.askYesNo('Would you like to set up power management for the ingestion pipeline?');
+      
+      if (shouldSetup) {
+        await this.performInitialSetup();
+      } else {
+        console.log('\nSetup skipped. Run this script again when you\'re ready to configure power management.');
+      }
+    } else {
+      console.log('═══════════════════════════════════════════════════════════════════════════════');
+      console.log('                              CONFIGURATION OPTIONS');
+      console.log('═══════════════════════════════════════════════════════════════════════════════\n');
+      
+      await this.showConfigurationMenu();
+    }
+  }
+
+  /**
+   * Shows configuration menu for already-configured systems
+   */
+  private async showConfigurationMenu(): Promise<void> {
+    console.log('Current configuration looks good! What would you like to do?\n');
+    console.log('1. Keep current configuration (no changes)');
+    console.log('2. Clear all power management scheduling');
+    console.log('3. Reconfigure from scratch');
+    console.log('4. Test the pipeline manually (without changing power state)');
+    console.log('5. Show detailed help information');
+    
+    const choice = await this.askQuestion('\nEnter your choice (1-5): ');
+    
+    switch (choice.trim()) {
+      case '1':
+        console.log('\n✅ Configuration unchanged. Your Mac will continue waking at 1:00 AM daily.');
+        break;
+      case '2':
+        await this.clearConfiguration();
+        break;
+      case '3':
+        await this.performInitialSetup();
+        break;
+      case '4':
+        await this.testPipelineManually();
+        break;
+      case '5':
+        this.showDetailedHelp();
+        break;
+      default:
+        console.log('\n❌ Invalid choice. No changes made.');
+    }
+  }
+
+  /**
+   * Performs initial setup
+   */
+  private async performInitialSetup(): Promise<void> {
+    console.log('\n🚀 Starting power management setup...\n');
 
     try {
-      // Clear any existing repeating schedules first
+      // Clear any existing schedules
+      console.log('1️⃣  Clearing any existing power schedules...');
       this.executeCommand('pmset repeat cancel', false);
+      console.log('   ✅ Existing schedules cleared\n');
 
-      // Configure power settings to ensure proper wake behavior with lid closed
-      console.log('Configuring power settings for reliable wake behavior...');
-      
-      // Enable wake when lid is opened (works even when closed due to schedule)
-      this.executeCommand('pmset -a lidwake 1');
-      
-      // Disable AC wake to prevent unwanted wakes when plugging/unplugging
-      this.executeCommand('pmset -a acwake 0');
-      
-      // Enable wake on ethernet magic packet (useful for remote management)
-      this.executeCommand('pmset -c womp 1');
-      
-      // Keep system awake during TTY sessions (important for SSH management)
-      this.executeCommand('pmset -a ttyskeepawake 1');
+      // Configure power settings
+      console.log('2️⃣  Configuring power settings for reliable wake behavior...');
+      this.executeCommand('pmset -a lidwake 1');     // Enable lid wake
+      this.executeCommand('pmset -a acwake 0');      // Disable AC wake
+      this.executeCommand('pmset -c womp 1');        // Enable wake on LAN (AC power only)
+      this.executeCommand('pmset -a ttyskeepawake 1'); // Keep awake during SSH sessions
+      console.log('   ✅ Power settings configured\n');
 
-      console.log('Power settings configured successfully.\n');
-
-      // Set up daily wake at 1 AM to run the ingestion pipeline
-      const scheduleCommand = `pmset repeat wakeorpoweron MTWRFSU ${this.CONFIG.wakeTime}`;
-      console.log(`Setting up daily wake schedule: ${this.CONFIG.wakeTime} every day`);
+      // Set up the schedule
+      console.log('3️⃣  Setting up daily wake schedule...');
+      const scheduleCommand = `pmset repeat wakeorpoweron MTWRFSU ${this.WAKE_TIME}`;
       this.executeCommand(scheduleCommand);
+      console.log(`   ✅ Daily wake scheduled for ${this.WAKE_TIME} (1:00 AM local time)\n`);
 
-      console.log('✅ Power management schedule configured successfully!');
-      console.log(`   • Mac will wake at ${this.CONFIG.wakeTime} daily (1:00 AM local time)`);
-      console.log('   • Works with lid open or closed');
-      console.log('   • Ingestion pipeline will run automatically after wake');
-      console.log('   • System will return to sleep/off after completion\n');
+      // Set up LaunchAgent for automatic execution
+      console.log('4️⃣  Setting up automatic pipeline execution...');
+      await this.setupLaunchAgent();
+      console.log('   ✅ LaunchAgent configured for automatic pipeline execution\n');
+
+      // Mark as configured
+      this.markAsConfigured();
+
+      console.log('🎉 SETUP COMPLETE!\n');
+      console.log('Your Mac is now configured to:');
+      console.log(`   • Wake up daily at ${this.WAKE_TIME} (1:00 AM local time)`);
+      console.log('   • Run the ingestion pipeline automatically');
+      console.log('   • Return to sleep/off state after completion');
+      console.log('   • Work with lid open or closed');
+      console.log();
+      console.log('The system will check power/battery conditions before running the pipeline.');
+      console.log('On battery power, it will only run if battery > 50%.');
+      console.log();
+      console.log('📝 IMPORTANT NOTES:');
+      console.log('   • Logs will be written to /tmp/power-management.log');
+      console.log('   • Error logs will be written to /tmp/power-management-error.log');
+      console.log('   • The LaunchAgent will automatically run the pipeline at 1:01 AM');
+      console.log('   • pmset handles the wake scheduling, LaunchAgent handles the execution');
 
     } catch (error) {
-      throw new Error(`Failed to setup schedule: ${error}`);
+      console.error('❌ Setup failed:', error);
+      throw error;
     }
+  }
+
+  /**
+   * Clears configuration
+   */
+  private async clearConfiguration(): Promise<void> {
+    const confirm = await this.askYesNo('\n⚠️  Are you sure you want to clear all power management scheduling?');
+    
+    if (confirm) {
+      console.log('\nClearing power management configuration...');
+      this.executeCommand('pmset repeat cancel');
+      await this.removeLaunchAgent();
+      this.clearConfigFile();
+      console.log('✅ All power management scheduling cleared.');
+      console.log('Your Mac will no longer automatically wake for the ingestion pipeline.');
+    } else {
+      console.log('\nOperation cancelled. Configuration unchanged.');
+    }
+  }
+
+  /**
+   * Tests the pipeline manually
+   */
+  private async testPipelineManually(): Promise<void> {
+    console.log('\n🧪 Testing ingestion pipeline manually...');
+    console.log('This will run the pipeline without changing power states.\n');
+    
+    const confirm = await this.askYesNo('Do you want to proceed with the test?');
+    
+    if (confirm) {
+      try {
+        console.log('\nStarting pipeline test...');
+        await this.runIngestionPipeline();
+        console.log('\n✅ Pipeline test completed successfully!');
+      } catch (error) {
+        console.error('\n❌ Pipeline test failed:', error);
+      }
+    } else {
+      console.log('\nTest cancelled.');
+    }
+  }
+
+  /**
+   * Shows detailed help
+   */
+  private showDetailedHelp(): void {
+    console.log(`
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                               DETAILED HELP                                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+WHAT THIS SCRIPT DOES:
+This script configures your Mac to automatically wake up at 1:00 AM every day
+and run the ingestion pipeline. It's designed for unattended operation.
+
+POWER MANAGEMENT BEHAVIOR:
+• Wakes at 1:00 AM daily (local time) regardless of lid position
+• Checks power source and battery level
+• Runs pipeline if conditions are met
+• Returns to previous power state (sleep or off)
+
+CONDITIONS FOR RUNNING PIPELINE:
+✅ AC Power Connected: Always runs pipeline
+🔋 Battery Power: Only runs if battery > ${this.MIN_BATTERY_LEVEL}%
+
+TECHNICAL DETAILS:
+• Uses pmset to schedule wake events
+• Configures lidwake=1 for reliable wake with lid closed
+• Sets acwake=0 to prevent unwanted wakes
+• Enables womp (Wake on LAN) when on AC power
+• Keeps system awake during SSH sessions
+
+SCHEDULED WAKE COMMAND:
+pmset repeat wakeorpoweron MTWRFSU ${this.WAKE_TIME}
+
+FILES MODIFIED:
+• /Library/Preferences/SystemConfiguration/com.apple.AutoWake.plist
+• /Library/Preferences/SystemConfiguration/com.apple.PowerManagement.plist
+• .power-management-config (in project root)
+
+MANUAL COMMANDS:
+• Check schedule: pmset -g sched
+• Check power settings: pmset -g
+• Check power source: pmset -g ps
+• Clear schedule: sudo pmset repeat cancel
+
+TROUBLESHOOTING:
+• Ensure you run with sudo privileges
+• Check that your Mac supports scheduled wake (most modern Macs do)
+• Verify power management settings with pmset -g
+• Check system logs if wake events don't occur
+
+For more information about pmset, see: man pmset
+`);
   }
 
   /**
    * Main logic for when the system wakes up at scheduled time
    */
   private async wakeAndRunPipeline(): Promise<void> {
-    console.log('Mac woke up at scheduled time, checking conditions...\n');
+    console.log('🌅 Mac woke up at scheduled time...\n');
 
     const powerStatus = this.getPowerStatus();
     
-    console.log('Power Status:');
-    console.log(`  • AC Power: ${powerStatus.isOnAC ? 'Connected' : 'Not connected'}`);
+    console.log('Power Status Check:');
+    console.log(`  • AC Power: ${powerStatus.isOnAC ? '🔌 Connected' : '🔋 Not connected'}`);
     console.log(`  • Battery Level: ${powerStatus.batteryLevel}%`);
     console.log(`  • Previously powered off: ${powerStatus.isPoweredOff ? 'Yes' : 'No (was sleeping)'}\n`);
 
@@ -137,18 +429,54 @@ class MacPowerManager {
     console.log('✅ Conditions met, running ingestion pipeline...\n');
     
     try {
-      // Run the ingestion pipeline
       await this.runIngestionPipeline();
-      
       console.log('\n✅ Ingestion pipeline completed successfully!');
-      
     } catch (error) {
-      console.error('❌ Ingestion pipeline failed:', error);
+      console.error('\n❌ Ingestion pipeline failed:', error);
     }
 
-    // Return to previous power state
     console.log('\nReturning to previous power state...');
     await this.returnToPreviousState(powerStatus.isPoweredOff);
+  }
+
+  /**
+   * Gets current configuration status
+   */
+  private getCurrentConfig(): PowerConfig {
+    const isConfigured = existsSync(this.CONFIG_FILE) && existsSync(this.getLaunchAgentPath());
+    
+    try {
+      // Check for scheduled events
+      const schedOutput = this.executeCommand('pmset -g sched', false);
+      const hasScheduledEvents = schedOutput.includes('wakeorpoweron') || schedOutput.includes('wakepoweron');
+      
+      // Get power settings
+      const pmsetOutput = this.executeCommand('pmset -g', false);
+      const lidwake = pmsetOutput.includes('lidwake              1');
+      const womp = pmsetOutput.includes('womp                 1');
+      const acwake = pmsetOutput.includes('acwake               1');
+      const ttyskeepawake = pmsetOutput.includes('ttyskeepawake        1');
+      
+      return {
+        isConfigured,
+        wakeTime: this.WAKE_TIME,
+        hasScheduledEvents,
+        lidwake,
+        womp,
+        acwake,
+        ttyskeepawake
+      };
+    } catch (error) {
+      return {
+        isConfigured: false,
+        wakeTime: this.WAKE_TIME,
+        hasScheduledEvents: false,
+        lidwake: false,
+        womp: false,
+        acwake: false,
+        ttyskeepawake: false
+      };
+    }
   }
 
   /**
@@ -158,32 +486,18 @@ class MacPowerManager {
     try {
       const powerOutput = this.executeCommand('pmset -g ps', false);
       
-      // Check if on AC power
       const isOnAC = powerOutput.includes("'AC Power'") || powerOutput.includes("AC attached");
-      
-      // Extract battery percentage
       const batteryMatch = powerOutput.match(/(\d+)%/);
       const batteryLevel = batteryMatch ? parseInt(batteryMatch[1], 10) : 100;
 
-      // Determine if system was previously powered off vs sleeping
-      // This is a heuristic - if we just booted recently, likely was powered off
       const uptimeOutput = this.executeCommand('uptime', false);
       const uptimeMatch = uptimeOutput.match(/up\s+(\d+):(\d+)/);
       const minutesUp = uptimeMatch ? parseInt(uptimeMatch[1]) * 60 + parseInt(uptimeMatch[2]) : 0;
-      const isPoweredOff = minutesUp < 10; // Less than 10 minutes uptime suggests recent boot
+      const isPoweredOff = minutesUp < 10;
 
-      return {
-        isOnAC,
-        batteryLevel,
-        isPoweredOff
-      };
+      return { isOnAC, batteryLevel, isPoweredOff };
     } catch (error) {
-      console.warn('Could not determine power status, assuming safe defaults');
-      return {
-        isOnAC: true,
-        batteryLevel: 100,
-        isPoweredOff: false
-      };
+      return { isOnAC: true, batteryLevel: 100, isPoweredOff: false };
     }
   }
 
@@ -192,16 +506,10 @@ class MacPowerManager {
    */
   private async runIngestionPipeline(): Promise<void> {
     return new Promise((resolve, reject) => {
-      console.log('Starting ingestion pipeline...');
-      
-      // Use the existing npm script from package.json
       const child = spawn('pnpm', ['run', 'ingestion:run-pipeline:triggered-by-schedule'], {
         stdio: 'inherit',
         cwd: process.cwd(),
-        env: {
-          ...process.env,
-          NODE_OPTIONS: '--max-old-space-size=8192'
-        }
+        env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=8192' }
       });
 
       child.on('close', (code) => {
@@ -219,113 +527,170 @@ class MacPowerManager {
   }
 
   /**
-   * Returns the system to its previous power state
+   * Returns system to previous power state
    */
   private async returnToPreviousState(wasPoweredOff: boolean): Promise<void> {
     const powerStatus = this.getPowerStatus();
     
     if (powerStatus.isOnAC) {
       if (wasPoweredOff) {
-        console.log('System was previously powered off and is on AC power - shutting down...');
+        console.log('Shutting down (was previously powered off, on AC power)...');
         this.executeCommand('shutdown -h now');
       } else {
-        console.log('System was previously sleeping and is on AC power - going to sleep...');
+        console.log('Going to sleep (was previously sleeping, on AC power)...');
         this.executeCommand('pmset sleepnow');
       }
     } else {
-      // On battery power
       if (wasPoweredOff) {
-        console.log('System was previously powered off and is on battery - shutting down...');
+        console.log('Shutting down (was previously powered off, on battery)...');
         this.executeCommand('shutdown -h now');
       } else {
-        console.log('System was previously sleeping and is on battery - going to sleep...');
+        console.log('Going to sleep (was previously sleeping, on battery)...');
         this.executeCommand('pmset sleepnow');
       }
     }
   }
 
   /**
-   * Clears all scheduled power events
+   * Sets up LaunchAgent for automatic pipeline execution
    */
-  private async clearSchedule(): Promise<void> {
-    console.log('Clearing power management schedule...');
+  private async setupLaunchAgent(): Promise<void> {
+    const launchAgentPath = this.getLaunchAgentPath();
+    const plistContent = this.generateLaunchAgentPlist();
     
     try {
-      this.executeCommand('pmset repeat cancel');
-      console.log('✅ Schedule cleared successfully!');
+      // Remove existing LaunchAgent if it exists
+      await this.removeLaunchAgent();
+      
+      // Write the new plist file
+      writeFileSync(launchAgentPath, plistContent);
+      
+      // Load the LaunchAgent
+      this.executeCommand(`launchctl load ${launchAgentPath}`, false);
+      
+      console.log(`   📄 LaunchAgent created: ${launchAgentPath}`);
     } catch (error) {
-      throw new Error(`Failed to clear schedule: ${error}`);
+      throw new Error(`Failed to setup LaunchAgent: ${error}`);
     }
   }
 
   /**
-   * Shows current power management status
+   * Removes the LaunchAgent
    */
-  private async showStatus(): Promise<void> {
-    console.log('=== Power Management Status ===\n');
+  private async removeLaunchAgent(): Promise<void> {
+    const launchAgentPath = this.getLaunchAgentPath();
     
     try {
-      console.log('Current Power Settings:');
-      const settings = this.executeCommand('pmset -g', false);
-      console.log(settings);
-      
-      console.log('\nScheduled Events:');
-      const schedule = this.executeCommand('pmset -g sched', false);
-      console.log(schedule);
-      
-      console.log('\nCurrent Power Source:');
-      const powerSource = this.executeCommand('pmset -g ps', false);
-      console.log(powerSource);
-      
-    } catch (error) {
-      console.error('Failed to get status:', error);
+      // Unload the LaunchAgent if it's loaded
+      this.executeCommand(`launchctl unload ${launchAgentPath}`, false);
+    } catch (e) {
+      // Ignore errors - agent might not be loaded
+    }
+    
+    try {
+      // Remove the plist file
+      if (existsSync(launchAgentPath)) {
+        require('fs').unlinkSync(launchAgentPath);
+      }
+    } catch (e) {
+      // Ignore errors
     }
   }
 
   /**
-   * Shows help information
+   * Gets the LaunchAgent path
    */
-  private showHelp(): void {
-    console.log(`
-Mac Power Management for Ingestion Pipeline
-
-DESCRIPTION:
-  This script configures your Mac to automatically wake up at 1:00 AM daily,
-  run the ingestion pipeline, and return to sleep/off state. Works with laptop
-  lid open or closed.
-
-USAGE:
-  pnpm run power:setup           # Setup the daily schedule (default)
-  pnpm run power:status          # Show current power management status
-  pnpm run power:clear           # Clear all scheduled power events
-  pnpm run power:wake-and-run    # Manual trigger of wake-and-run logic
-
-BEHAVIOR:
-  • Wakes at 1:00 AM daily (local time)
-  • If on AC power: always runs pipeline, then returns to previous state
-  • If on battery: only runs if battery > 50%, otherwise returns to sleep/off
-  • If previously powered off: shuts down after completion
-  • If previously sleeping: goes back to sleep after completion
-  • Works reliably with MacBook lid closed or open
-
-REQUIREMENTS:
-  • Must run with sudo privileges (for pmset commands)
-  • Only works on macOS systems
-  • Designed for unattended operation
-
-EXAMPLES:
-  sudo pnpm run power:setup     # Initial setup
-  sudo pnpm run power:status    # Check what's configured
-  sudo pnpm run power:clear     # Remove all scheduled events
-
-Note: The wake time (1:00 AM) is currently hardcoded but may be made 
-configurable in future versions.
-`);
+  private getLaunchAgentPath(): string {
+    const homeDir = require('os').homedir();
+    return join(homeDir, 'Library/LaunchAgents/com.browse-dot-show.power-management.plist');
   }
 
   /**
-   * Executes a shell command and returns output
+   * Generates the LaunchAgent plist content
    */
+  private generateLaunchAgentPlist(): string {
+    const projectPath = process.cwd();
+    const scriptPath = join(projectPath, 'scripts/power-management.ts');
+    
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.browse-dot-show.power-management</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>tsx</string>
+        <string>${scriptPath}</string>
+        <string>--wake-and-run</string>
+    </array>
+    
+    <key>RunAtLoad</key>
+    <false/>
+    
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>1</integer>
+        <key>Minute</key>
+        <integer>1</integer>
+    </dict>
+    
+    <key>StandardOutPath</key>
+    <string>/tmp/power-management.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/tmp/power-management-error.log</string>
+    
+    <key>WorkingDirectory</key>
+    <string>${projectPath}</string>
+    
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+        <key>NODE_OPTIONS</key>
+        <string>--max-old-space-size=8192</string>
+    </dict>
+</dict>
+</plist>`;
+  }
+
+  /**
+   * Helper methods
+   */
+  private async askQuestion(question: string): Promise<string> {
+    return new Promise((resolve) => {
+      this.rl.question(question, (answer) => {
+        resolve(answer);
+      });
+    });
+  }
+
+  private async askYesNo(question: string): Promise<boolean> {
+    const answer = await this.askQuestion(`${question} (y/N): `);
+    return answer.toLowerCase().startsWith('y');
+  }
+
+  private markAsConfigured(): void {
+    writeFileSync(this.CONFIG_FILE, JSON.stringify({
+      configured: true,
+      timestamp: new Date().toISOString(),
+      wakeTime: this.WAKE_TIME
+    }, null, 2));
+  }
+
+  private clearConfigFile(): void {
+    if (existsSync(this.CONFIG_FILE)) {
+      try {
+        require('fs').unlinkSync(this.CONFIG_FILE);
+      } catch (e) {
+        // Ignore errors
+      }
+    }
+  }
+
   private executeCommand(command: string, throwOnError: boolean = true): string {
     try {
       const result = execSync(command, { 
@@ -341,21 +706,13 @@ configurable in future versions.
     }
   }
 
-  /**
-   * Ensures this script is running on macOS
-   */
+  private hasSudoPrivileges(): boolean {
+    return process.getuid && process.getuid() === 0;
+  }
+
   private ensureRunningOnMac(): void {
     if (process.platform !== 'darwin') {
       throw new Error('This script only works on macOS systems');
-    }
-  }
-
-  /**
-   * Ensures the script is running with root privileges
-   */
-  private ensureRootPrivileges(): void {
-    if (process.getuid && process.getuid() !== 0) {
-      throw new Error('This script must be run with sudo privileges for pmset commands');
     }
   }
 }
@@ -364,7 +721,7 @@ configurable in future versions.
 if (require.main === module) {
   const manager = new MacPowerManager();
   manager.run().catch((error) => {
-    console.error('Fatal error:', error.message);
+    console.error('\n💥 Fatal error:', error.message);
     process.exit(1);
   });
 }
