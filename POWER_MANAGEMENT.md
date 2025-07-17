@@ -86,13 +86,28 @@ Shows current configuration and options:
 2. Clear all scheduling
 3. Reconfigure from scratch
 4. Test pipeline manually
-5. Show detailed help
+5. View recent pipeline run history
+6. Show detailed help
 
 ### Manual Pipeline Test
 You can test the pipeline without affecting power states:
 ```bash
 sudo pnpm run power:manage
 # Choose option 4 from the menu
+```
+
+### Pipeline Run History
+Every pipeline execution is automatically logged to `ingestion-pipeline-runs.md` with:
+- **Timestamp and duration** of each run
+- **Sites processed** and success rates
+- **Files uploaded/downloaded** statistics  
+- **Error details** if any occurred
+- **Most recent runs first** for easy monitoring
+
+View recent runs:
+```bash
+sudo pnpm run power:manage
+# Choose option 5 from the menu
 ```
 
 ## Configuration Details
@@ -110,6 +125,7 @@ sudo pnpm run power:manage
 #### Log Files
 - `/tmp/power-management.log` - Execution logs
 - `/tmp/power-management-error.log` - Error logs
+- `ingestion-pipeline-runs.md` - Pipeline execution history (git-ignored)
 
 ### Power Settings Applied
 
