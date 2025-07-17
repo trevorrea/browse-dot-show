@@ -4,6 +4,7 @@ import { execSync, spawn } from 'child_process';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import * as readline from 'readline';
+import { PipelineResultLogger } from './utils/pipeline-result-logger.js';
 
 interface PowerStatus {
   isOnAC: boolean;
@@ -187,6 +188,24 @@ REQUIREMENTS:
       console.log('   ❌ Could not read schedule information');
     }
     console.log();
+
+    // Recent Pipeline Runs
+    console.log('📊 RECENT PIPELINE RUNS:');
+    try {
+      const logger = new PipelineResultLogger();
+      if (logger.logFileExists()) {
+        const recentRuns = logger.getRecentEntries(3).split('\n').slice(0, 15); // Show first 15 lines
+        console.log(recentRuns.map(line => `   ${line}`).join('\n'));
+        if (recentRuns.length >= 15) {
+          console.log('   ... (see ingestion-pipeline-runs.md for full history)');
+        }
+      } else {
+        console.log('   No pipeline runs logged yet.');
+      }
+    } catch (e) {
+      console.log('   ❌ Could not read pipeline run history');
+    }
+    console.log();
   }
 
   /**
@@ -230,9 +249,10 @@ REQUIREMENTS:
     console.log('2. Clear all power management scheduling');
     console.log('3. Reconfigure from scratch');
     console.log('4. Test the pipeline manually (without changing power state)');
-    console.log('5. Show detailed help information');
+    console.log('5. View recent pipeline run history');
+    console.log('6. Show detailed help information');
     
-    const choice = await this.askQuestion('\nEnter your choice (1-5): ');
+    const choice = await this.askQuestion('\nEnter your choice (1-6): ');
     
     switch (choice.trim()) {
       case '1':
@@ -248,6 +268,9 @@ REQUIREMENTS:
         await this.testPipelineManually();
         break;
       case '5':
+        await this.showPipelineHistory();
+        break;
+      case '6':
         this.showDetailedHelp();
         break;
       default:
@@ -352,6 +375,40 @@ REQUIREMENTS:
   }
 
   /**
+   * Shows recent pipeline run history
+   */
+  private async showPipelineHistory(): void {
+    console.log('\n📊 RECENT PIPELINE RUN HISTORY');
+    console.log('═'.repeat(50) + '\n');
+    
+    try {
+      const logger = new PipelineResultLogger();
+      if (logger.logFileExists()) {
+        const recentRuns = logger.getRecentEntries(10); // Show last 10 runs
+        console.log(recentRuns);
+        console.log(`\n📝 Full history available at: ${logger.getLogFilePath()}`);
+      } else {
+        console.log('No pipeline runs have been logged yet.');
+        console.log('Pipeline runs will appear here after the first automated execution.');
+      }
+    } catch (error) {
+      console.error('❌ Failed to read pipeline history:', error);
+    }
+    
+    const viewMore = await this.askYesNo('\nWould you like to open the full log file?');
+    if (viewMore) {
+      try {
+        const logger = new PipelineResultLogger();
+        this.executeCommand(`open "${logger.getLogFilePath()}"`, false);
+        console.log('📖 Opening log file in default application...');
+      } catch (e) {
+        console.log('❌ Could not open log file automatically.');
+        console.log(`   Please open manually: ${new PipelineResultLogger().getLogFilePath()}`);
+      }
+    }
+  }
+
+  /**
    * Shows detailed help
    */
   private showDetailedHelp(): void {
@@ -431,6 +488,18 @@ For more information about pmset, see: man pmset
     try {
       await this.runIngestionPipeline();
       console.log('\n✅ Ingestion pipeline completed successfully!');
+      
+      // Show most recent log entry
+      try {
+        const logger = new PipelineResultLogger();
+        if (logger.logFileExists()) {
+          console.log('\n📊 Latest Pipeline Results:');
+          const recentRun = logger.getRecentEntries(1).split('\n').slice(0, 10);
+          console.log(recentRun.map(line => `   ${line}`).join('\n'));
+        }
+      } catch (e) {
+        // Ignore logging errors during power management
+      }
     } catch (error) {
       console.error('\n❌ Ingestion pipeline failed:', error);
     }
