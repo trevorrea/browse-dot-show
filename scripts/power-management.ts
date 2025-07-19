@@ -698,7 +698,7 @@ For more information about pmset, see: man pmset
       writeFileSync(launchAgentPath, plistContent);
       
       // Load the LaunchAgent
-      this.executeCommand(`launchctl load ${launchAgentPath}`, false);
+      this.executeCommand(`launchctl load ${launchAgentPath}`, true);
       
       console.log(`   📄 LaunchAgent created: ${launchAgentPath}`);
     } catch (error) {
@@ -742,7 +742,6 @@ For more information about pmset, see: man pmset
    */
   private generateLaunchAgentPlist(scheduleConfig: UserScheduleConfig): string {
     const projectPath = process.cwd();
-    const scriptPath = join(projectPath, 'scripts/power-management.ts');
     const logDir = this.LOG_DIR;
     const launchTime = this.getLaunchAgentTime(scheduleConfig.wakeTime);
     const [launchHour, launchMinute] = launchTime.split(':').map(Number);
@@ -765,9 +764,9 @@ For more information about pmset, see: man pmset
     
     <key>ProgramArguments</key>
     <array>
-        <string>tsx</string>
-        <string>${scriptPath}</string>
-        <string>--wake-and-run</string>
+        <string>/bin/zsh</string>
+        <string>-c</string>
+        <string>cd ${projectPath} && /Users/jackkoppa/.nvm/versions/node/v22.14.0/bin/pnpm run power:manage -- --wake-and-run</string>
     </array>
     
     <key>RunAtLoad</key>
@@ -793,9 +792,11 @@ For more information about pmset, see: man pmset
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
-        <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+        <string>/Users/jackkoppa/.nvm/versions/node/v22.14.0/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
         <key>NODE_OPTIONS</key>
         <string>--max-old-space-size=8192</string>
+        <key>HOME</key>
+        <string>/Users/jackkoppa</string>
     </dict>
 </dict>
 </plist>`;
@@ -860,8 +861,7 @@ For more information about pmset, see: man pmset
       type: 'multiselect',
       name: 'daysOfWeek',
       message: 'Select which days of the week to run the pipeline:',
-      choices: dayChoices,
-      initial: [0, 1, 2, 3, 4, 5, 6] // Default to all days
+      choices: dayChoices
     });
 
     return {
@@ -874,7 +874,7 @@ For more information about pmset, see: man pmset
    * Formats days of week for display
    */
   private formatDaysForDisplay(days: string[]): string {
-    const dayNames = {
+    const dayNames: Record<string, string> = {
       'M': 'Monday',
       'T': 'Tuesday', 
       'W': 'Wednesday',
