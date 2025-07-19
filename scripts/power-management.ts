@@ -68,7 +68,7 @@ class MacPowerManager {
     console.log(`
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                          Mac Power Management Setup                          ║
-║                         for Ingestion Pipeline Scheduling                   ║
+║                         for Ingestion Pipeline Scheduling                    ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 This script configures your Mac to automatically:
