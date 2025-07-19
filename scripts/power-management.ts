@@ -1,9 +1,10 @@
 #!/usr/bin/env tsx
 
 import { execSync, spawn } from 'child_process';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import * as readline from 'readline';
+import { homedir } from 'os';
 import { PipelineResultLogger } from './utils/pipeline-result-logger.js';
 
 interface PowerStatus {
@@ -377,7 +378,7 @@ REQUIREMENTS:
   /**
    * Shows recent pipeline run history
    */
-  private async showPipelineHistory(): void {
+  private async showPipelineHistory(): Promise<void> {
     console.log('\n📊 RECENT PIPELINE RUN HISTORY');
     console.log('═'.repeat(50) + '\n');
     
@@ -659,7 +660,7 @@ For more information about pmset, see: man pmset
     try {
       // Remove the plist file
       if (existsSync(launchAgentPath)) {
-        require('fs').unlinkSync(launchAgentPath);
+        unlinkSync(launchAgentPath);
       }
     } catch (e) {
       // Ignore errors
@@ -670,7 +671,7 @@ For more information about pmset, see: man pmset
    * Gets the LaunchAgent path
    */
   private getLaunchAgentPath(): string {
-    const homeDir = require('os').homedir();
+    const homeDir = homedir();
     return join(homeDir, 'Library/LaunchAgents/com.browse-dot-show.power-management.plist');
   }
 
@@ -753,7 +754,7 @@ For more information about pmset, see: man pmset
   private clearConfigFile(): void {
     if (existsSync(this.CONFIG_FILE)) {
       try {
-        require('fs').unlinkSync(this.CONFIG_FILE);
+        unlinkSync(this.CONFIG_FILE);
       } catch (e) {
         // Ignore errors
       }
@@ -776,7 +777,7 @@ For more information about pmset, see: man pmset
   }
 
   private hasSudoPrivileges(): boolean {
-    return process.getuid && process.getuid() === 0;
+    return process.getuid ? process.getuid() === 0 : false;
   }
 
   private ensureRunningOnMac(): void {
@@ -787,7 +788,7 @@ For more information about pmset, see: man pmset
 }
 
 // Run the script if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const manager = new MacPowerManager();
   manager.run().catch((error) => {
     console.error('\n💥 Fatal error:', error.message);
