@@ -18,13 +18,13 @@ interface PipelineRunStatus {
   consecutiveFailures: number;
 }
 
-interface DailyPipelineConfig {
+interface AutomationConfig {
   enabled: boolean;
   timestamp: string;
 }
 
-class DailyPipelineManager {
-  private readonly CONFIG_FILE = join(process.cwd(), '.power-management-config');
+class IngestionAutomationManager {
+  private readonly CONFIG_FILE = join(process.cwd(), '.automation-config');
   private readonly TIMESTAMP_FILE = join(process.cwd(), '.last-pipeline-run');
   private readonly MIN_BATTERY_LEVEL = 50;
   private readonly HOURS_BETWEEN_RUNS = 24;
@@ -68,7 +68,7 @@ class DailyPipelineManager {
    * Automatic execution logic (triggered by LaunchAgent on login)
    */
   private async checkAndRunPipeline(): Promise<void> {
-    console.log(`🚀 Daily pipeline check started at ${new Date().toISOString()}`);
+    console.log(`🚀 Ingestion automation check started at ${new Date().toISOString()}`);
     
     // Fast exit if pipeline ran successfully recently
     if (!this.shouldRunPipeline()) {
@@ -80,10 +80,10 @@ class DailyPipelineManager {
       return;
     }
 
-    // Check if pipeline is enabled
+    // Check if automation is enabled
     const config = this.getCurrentConfig();
     if (!config.enabled) {
-      console.log('⏸️  Daily pipeline is disabled. Exiting.');
+      console.log('⏸️  Ingestion automation is disabled. Exiting.');
       return;
     }
 
@@ -175,7 +175,7 @@ class DailyPipelineManager {
   private showWelcomeMessage(): void {
     console.log(`
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║                         Daily Pipeline Management                           ║
+║                        Ingestion Automation Management                      ║
 ║                    Automatic Daily Ingestion Pipeline                       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -192,7 +192,7 @@ POWER CONDITIONS:
   🔋 Battery Power: Only runs if battery > 50%
 
 REQUIREMENTS:
-  • Must run with sudo for LaunchAgent management: sudo pnpm run power:manage
+  • Must run with sudo for LaunchAgent management: sudo pnpm run ingestion:automation:manage
   • Only works on macOS systems
 `);
   }
@@ -209,7 +209,7 @@ REQUIREMENTS:
     if (!this.hasSudoPrivileges()) {
       console.log('❌ MISSING SUDO PRIVILEGES');
       console.log('   This script requires sudo to manage LaunchAgent configuration.');
-      console.log('   Please run: sudo pnpm run power:manage\n');
+      console.log('   Please run: sudo pnpm run ingestion:automation:manage\n');
       return;
     }
 
@@ -263,7 +263,7 @@ REQUIREMENTS:
     try {
       const logger = new PipelineResultLogger();
       if (logger.logFileExists()) {
-        const recentRuns = logger.getRecentEntries(10).split('\n').slice(0, 10);
+        const recentRuns = logger.getRecentEntries(3).split('\n').slice(0, 10);
         console.log(recentRuns.map(line => `   ${line}`).join('\n'));
         if (recentRuns.length >= 10) {
           console.log('   ... (see ingestion-pipeline-runs.md for full history)');
@@ -294,14 +294,14 @@ REQUIREMENTS:
 
     const menuChoices = [
       { 
-        title: `${config.enabled ? 'Keep pipeline enabled' : 'Keep pipeline disabled'} (no changes)`, 
+        title: `${config.enabled ? 'Keep automation enabled' : 'Keep automation disabled'} (no changes)`, 
         value: 'keep' 
       },
       { 
-        title: config.enabled ? 'Disable daily pipeline' : 'Enable daily pipeline', 
+        title: config.enabled ? 'Disable ingestion automation' : 'Enable ingestion automation', 
         value: 'toggle' 
       },
-      { title: 'Test pipeline manually (no effect on daily execution)', value: 'test' },
+      { title: 'Test pipeline manually (no effect on automation)', value: 'test' },
       { title: 'View recent pipeline run history', value: 'history' },
       { title: 'Show detailed help information', value: 'help' }
     ];
@@ -315,10 +315,10 @@ REQUIREMENTS:
 
     switch (response.action) {
       case 'keep':
-        console.log(`\n✅ Configuration unchanged. Daily pipeline is ${config.enabled ? 'enabled' : 'disabled'}.`);
+        console.log(`\n✅ Configuration unchanged. Ingestion automation is ${config.enabled ? 'enabled' : 'disabled'}.`);
         break;
       case 'toggle':
-        await this.togglePipelineEnabled();
+        await this.toggleAutomationEnabled();
         break;
       case 'test':
         await this.testPipelineManually();
@@ -335,9 +335,9 @@ REQUIREMENTS:
   }
 
   /**
-   * Toggles pipeline enabled/disabled
+   * Toggles automation enabled/disabled
    */
-  private async togglePipelineEnabled(): Promise<void> {
+  private async toggleAutomationEnabled(): Promise<void> {
     const config = this.getCurrentConfig();
     const newState = !config.enabled;
     
@@ -345,15 +345,15 @@ REQUIREMENTS:
     const response = await prompts({
       type: 'confirm',
       name: 'confirm',
-      message: `Are you sure you want to ${action} the daily pipeline?`,
+      message: `Are you sure you want to ${action} ingestion automation?`,
       initial: true
     });
     
     if (response.confirm) {
       if (newState) {
-        await this.enablePipeline();
+        await this.enableAutomation();
       } else {
-        await this.disablePipeline();
+        await this.disableAutomation();
       }
     } else {
       console.log('\nOperation cancelled. Configuration unchanged.');
@@ -361,10 +361,10 @@ REQUIREMENTS:
   }
 
   /**
-   * Enables the daily pipeline
+   * Enables ingestion automation
    */
-  private async enablePipeline(): Promise<void> {
-    console.log('\n🚀 Enabling daily pipeline...');
+  private async enableAutomation(): Promise<void> {
+    console.log('\n🚀 Enabling ingestion automation...');
     
     try {
       // Set up LaunchAgent
@@ -373,27 +373,27 @@ REQUIREMENTS:
       // Mark as enabled
       this.markAsConfigured(true);
       
-      console.log('\n✅ DAILY PIPELINE ENABLED!');
+      console.log('\n✅ INGESTION AUTOMATION ENABLED!');
       console.log('The pipeline will now run automatically when you log in, at most once per day.');
       console.log('It will check power conditions and only run if appropriate.');
       console.log();
       console.log('📝 IMPORTANT NOTES:');
-      console.log(`   • Logs will be written to ${this.LOG_DIR}/daily-pipeline.log`);
-      console.log(`   • Error logs will be written to ${this.LOG_DIR}/daily-pipeline-error.log`);
+      console.log(`   • Logs will be written to ${this.LOG_DIR}/automation.log`);
+      console.log(`   • Error logs will be written to ${this.LOG_DIR}/automation-error.log`);
       console.log('   • The LaunchAgent runs every login but exits quickly if already run today');
       console.log('   • Pipeline runs at most once per 24-hour period');
       
     } catch (error) {
-      console.error('❌ Failed to enable pipeline:', error);
+      console.error('❌ Failed to enable automation:', error);
       throw error;
     }
   }
 
   /**
-   * Disables the daily pipeline
+   * Disables ingestion automation
    */
-  private async disablePipeline(): Promise<void> {
-    console.log('\n⏸️  Disabling daily pipeline...');
+  private async disableAutomation(): Promise<void> {
+    console.log('\n⏸️  Disabling ingestion automation...');
     
     try {
       // Remove LaunchAgent
@@ -402,12 +402,12 @@ REQUIREMENTS:
       // Mark as disabled
       this.markAsConfigured(false);
       
-      console.log('✅ Daily pipeline disabled.');
+      console.log('✅ Ingestion automation disabled.');
       console.log('The pipeline will no longer run automatically on login.');
       console.log('You can re-enable it anytime by running this script again.');
       
     } catch (error) {
-      console.error('❌ Failed to disable pipeline:', error);
+      console.error('❌ Failed to disable automation:', error);
       throw error;
     }
   }
@@ -417,7 +417,7 @@ REQUIREMENTS:
    */
   private async testPipelineManually(): Promise<void> {
     console.log('\n🧪 Testing ingestion pipeline manually...');
-    console.log('This will run the pipeline without affecting daily execution tracking.\n');
+    console.log('This will run the pipeline without affecting automation tracking.\n');
     
     const response = await prompts({
       type: 'confirm',
@@ -499,7 +499,7 @@ EXECUTION BEHAVIOR:
 • Retries if last successful run was more than 24 hours ago
 
 CONDITIONS FOR RUNNING PIPELINE:
-✅ Daily pipeline enabled AND (last success > 24h ago)
+✅ Ingestion automation enabled AND (last success > 24h ago)
 ✅ AC Power Connected: Always runs pipeline
 🔋 Battery Power: Only runs if battery > ${this.MIN_BATTERY_LEVEL}%
 
@@ -510,15 +510,15 @@ TECHNICAL DETAILS:
 • No complex power management or scheduled wake required
 
 FILES CREATED:
-• .power-management-config - Enabled/disabled state
+• .automation-config - Enabled/disabled state
 • .last-pipeline-run - Timestamp tracking
-• ~/Library/LaunchAgents/com.browse-dot-show.daily-pipeline.plist - LaunchAgent
+• ~/Library/LaunchAgents/com.browse-dot-show.ingestion-automation.plist - LaunchAgent
 
 MANUAL COMMANDS:
-• Check LaunchAgent: launchctl list | grep daily-pipeline
+• Check LaunchAgent: launchctl list | grep ingestion-automation
 • Check power source: pmset -g ps
 • View timestamps: cat .last-pipeline-run
-• View recent logs: tail -20 scripts/automation-logs/daily-pipeline.log
+• View recent logs: tail -20 scripts/automation-logs/automation.log
 
 TROUBLESHOOTING:
 • Ensure you run with sudo privileges for setup
@@ -537,7 +537,7 @@ ADVANTAGES:
   /**
    * Gets current configuration
    */
-  private getCurrentConfig(): DailyPipelineConfig {
+  private getCurrentConfig(): AutomationConfig {
     if (!existsSync(this.CONFIG_FILE)) {
       return { enabled: false, timestamp: new Date().toISOString() };
     }
@@ -647,7 +647,7 @@ ADVANTAGES:
    */
   private getLaunchAgentPath(): string {
     const homeDir = homedir();
-    return join(homeDir, 'Library/LaunchAgents/com.browse-dot-show.daily-pipeline.plist');
+    return join(homeDir, 'Library/LaunchAgents/com.browse-dot-show.ingestion-automation.plist');
   }
 
   /**
@@ -671,23 +671,23 @@ ADVANTAGES:
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.browse-dot-show.daily-pipeline</string>
+    <string>com.browse-dot-show.ingestion-automation</string>
     
     <key>ProgramArguments</key>
     <array>
         <string>/bin/zsh</string>
         <string>-c</string>
-        <string>cd ${projectPath} && /Users/jackkoppa/.nvm/versions/node/v22.14.0/bin/pnpm run power:manage -- --auto-run</string>
+        <string>cd ${projectPath} && /Users/jackkoppa/.nvm/versions/node/v22.14.0/bin/pnpm run ingestion:automation:manage -- --auto-run</string>
     </array>
     
     <key>RunAtLoad</key>
     <true/>
     
     <key>StandardOutPath</key>
-    <string>${logDir}/daily-pipeline.log</string>
+    <string>${logDir}/automation.log</string>
     
     <key>StandardErrorPath</key>
-    <string>${logDir}/daily-pipeline-error.log</string>
+    <string>${logDir}/automation-error.log</string>
     
     <key>WorkingDirectory</key>
     <string>${projectPath}</string>
@@ -709,7 +709,7 @@ ADVANTAGES:
    * Marks configuration as enabled/disabled
    */
   private markAsConfigured(enabled: boolean): void {
-    const config: DailyPipelineConfig = {
+    const config: AutomationConfig = {
       enabled,
       timestamp: new Date().toISOString()
     };
@@ -747,11 +747,11 @@ ADVANTAGES:
 
 // Run the script if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const manager = new DailyPipelineManager();
+  const manager = new IngestionAutomationManager();
   manager.run().catch((error) => {
     console.error('\n💥 Fatal error:', error.message);
     process.exit(1);
   });
 }
 
-export default DailyPipelineManager;
+export default IngestionAutomationManager;
