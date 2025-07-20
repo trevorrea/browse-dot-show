@@ -1,68 +1,60 @@
-# Mac Power Management for Ingestion Pipeline
+# Mac Daily Pipeline Execution
 
-This system configures your Mac to automatically wake up at 1:00 AM daily, run the ingestion pipeline, and return to sleep/off state. It works reliably whether your MacBook lid is open or closed.
+This system automatically runs the ingestion pipeline once per day when you log into your Mac. It's designed to be lightweight, reliable, and work seamlessly with your normal usage patterns.
 
 ## Quick Start
 
 ```bash
-# Run the interactive setup (requires sudo)
+# Run the setup (requires sudo for LaunchAgent management)
 sudo pnpm run power:manage
 ```
 
 ## What It Does
 
-### Automatic Scheduling
-- **Wakes your Mac at 1:00 AM daily** using `pmset` system scheduling
-- **Runs the ingestion pipeline** via a LaunchAgent
-- **Returns to previous power state** (sleep or shutdown) after completion
+### Automatic Daily Execution
+- **Runs once per day maximum** - uses timestamp tracking to ensure pipeline doesn't run multiple times
+- **Triggered on login** - executes when you log in (including unlocking from lock screen)
+- **Fast exit** - if pipeline already ran successfully in last 24 hours, exits in milliseconds
+- **Smart retry** - retries if last successful run was more than 24 hours ago
 
 ### Power-Aware Operation
 - **AC Power**: Always runs the pipeline
 - **Battery Power**: Only runs if battery > 50%
-- **Low Battery**: Skips pipeline and returns to sleep/off immediately
+- **Low Battery**: Skips pipeline execution
 
-### Lid-Closed Support
-- **Works with MacBook lid closed** thanks to `lidwake=1` configuration
-- **Reliable wake scheduling** regardless of lid position
-- **Proper sleep/wake behavior** for both open and closed lid scenarios
+### Lightweight Design
+- **No scheduled wake**: Eliminates unreliable `pmset` scheduling
+- **No power management**: No complex system configuration required
+- **Login-based**: Works with normal Mac usage patterns
+- **Quick checks**: Fast timestamp verification before any heavy operations
 
 ## System Requirements
 
-- **macOS only** (uses `pmset` and LaunchAgent)
-- **Sudo privileges** required for power management configuration
+- **macOS only** (uses LaunchAgent)
+- **Sudo privileges** required for LaunchAgent setup (one-time)
 - **Node.js and pnpm** for running the TypeScript scripts
 
 ## How It Works
 
-### 1. Power Management Configuration
-The script configures several `pmset` settings for reliable operation:
-
-```bash
-pmset -a lidwake 1          # Wake when lid opened (enables scheduled wake)
-pmset -a acwake 0           # Don't wake on power source changes
-pmset -c womp 1             # Enable Wake-on-LAN when on AC power
-pmset -a ttyskeepawake 1    # Stay awake during SSH sessions
+### 1. Login Trigger
+A LaunchAgent is configured to run every time you log in:
+```xml
+<key>RunAtLoad</key>
+<true/>
 ```
 
-### 2. Wake Scheduling
-Creates a daily wake schedule:
-
-```bash
-pmset repeat wakeorpoweron MTWRFSU 01:00:00
-```
-
-This tells your Mac to wake up or power on at 1:00 AM every day of the week.
+### 2. Timestamp Check
+On every execution, the script:
+1. Checks `.last-pipeline-run` file for last successful run timestamp
+2. If successful run within 24 hours, exits immediately (< 10ms)
+3. If no recent success, proceeds with pipeline execution
 
 ### 3. Automatic Execution
-A LaunchAgent is created at:
-```
-~/Library/LaunchAgents/com.browse-dot-show.power-management.plist
-```
-
-This LaunchAgent runs at 1:01 AM (one minute after wake) to:
-- Check power source and battery level
-- Run the ingestion pipeline if conditions are met
-- Return the system to its previous power state
+When conditions are met:
+- Checks power source and battery level
+- Runs the ingestion pipeline if power conditions allow
+- Records success/failure timestamps
+- Tracks consecutive failures for future alerting
 
 ## Usage
 
@@ -73,190 +65,172 @@ sudo pnpm run power:manage
 
 On first run, you'll see:
 1. Current configuration status
-2. Guided setup process
-3. Configuration of power settings and scheduling
+2. Simple enable/disable option for daily pipeline
+3. LaunchAgent setup
 
 ### Subsequent Runs
 ```bash
 sudo pnpm run power:manage
 ```
 
-Shows current configuration and options:
-1. Keep current configuration
-2. Clear all scheduling
-3. Reconfigure from scratch
-4. Test pipeline manually
-5. View recent pipeline run history
-6. Show detailed help
+Shows current status and options:
+1. Keep current configuration (enabled/disabled)
+2. Toggle pipeline execution on/off
+3. Test pipeline manually
+4. View recent pipeline run history
+5. Show help information
 
 ### Manual Pipeline Test
-You can test the pipeline without affecting power states:
+Test the pipeline without affecting the daily execution tracking:
 ```bash
 sudo pnpm run power:manage
-# Choose option 4 from the menu
+# Choose the manual test option
 ```
 
 ### Pipeline Run History
-Every pipeline execution is automatically logged to `ingestion-pipeline-runs.md` with:
+Every pipeline execution is logged with:
 - **Timestamp and duration** of each run
-- **Sites processed** and success rates
-- **Files uploaded/downloaded** statistics  
-- **Error details** if any occurred
-- **Most recent runs first** for easy monitoring
+- **Success/failure status** and error details
+- **Sites processed** and statistics
+- **Power source** at time of execution
 
-View recent runs:
-```bash
-sudo pnpm run power:manage
-# Choose option 5 from the menu
-```
+View recent runs through the management script menu.
 
 ## Configuration Details
 
 ### Files Created/Modified
 
-#### System Files (via pmset)
-- `/Library/Preferences/SystemConfiguration/com.apple.PowerManagement.plist`
-- `/Library/Preferences/SystemConfiguration/com.apple.AutoWake.plist`
-
 #### Project Files
-- `.power-management-config` - Tracks configuration state
-- `~/Library/LaunchAgents/com.browse-dot-show.power-management.plist` - LaunchAgent
+- `.power-management-config` - Simple enabled/disabled state
+- `.last-pipeline-run` - Timestamp tracking for rate limiting
+- `~/Library/LaunchAgents/com.browse-dot-show.daily-pipeline.plist` - LaunchAgent
 
 #### Log Files
-- `/tmp/power-management.log` - Execution logs
-- `/tmp/power-management-error.log` - Error logs
+- `scripts/automation-logs/daily-pipeline.log` - Execution logs
+- `scripts/automation-logs/daily-pipeline-error.log` - Error logs
 - `ingestion-pipeline-runs.md` - Pipeline execution history (git-ignored)
 
-### Power Settings Applied
+### Execution Logic
 
-| Setting | Value | Purpose |
-|---------|--------|---------|
-| `lidwake` | 1 | Enable wake when lid opened (required for scheduled wake) |
-| `acwake` | 0 | Disable wake on power source changes (prevents unwanted wakes) |
-| `womp` | 1 | Enable Wake-on-LAN when on AC power (useful for remote management) |
-| `ttyskeepawake` | 1 | Prevent sleep during SSH sessions |
+| Condition | Action |
+|-----------|---------|
+| Last success < 24 hours ago | ✅ Exit immediately (no pipeline run) |
+| Last success ≥ 24 hours ago + AC Power | ✅ Run pipeline |
+| Last success ≥ 24 hours ago + Battery > 50% | ✅ Run pipeline |
+| Last success ≥ 24 hours ago + Battery ≤ 50% | ❌ Skip pipeline (record attempt) |
 
-## Behavior Matrix
+### Retry Behavior
 
-| Power Source | Battery Level | Action |
-|--------------|---------------|---------|
-| AC Power | Any | ✅ Run pipeline, return to previous state |
-| Battery | > 50% | ✅ Run pipeline, return to previous state |
-| Battery | ≤ 50% | ❌ Skip pipeline, return to sleep/off immediately |
-
-| Previous State | After Pipeline | Action |
-|----------------|----------------|---------|
-| Powered Off | Completed | `shutdown -h now` |
-| Sleeping | Completed | `pmset sleepnow` |
+| Scenario | Behavior |
+|----------|----------|
+| Pipeline succeeds | Reset failure counter, update success timestamp |
+| Pipeline fails | Increment failure counter, update attempt timestamp |
+| 4+ consecutive failures | TODO: Send Slack alert (future enhancement) |
 
 ## Troubleshooting
 
-### Mac Doesn't Wake at Scheduled Time
+### Pipeline Doesn't Run
 
-1. **Check scheduled events:**
+1. **Check if enabled:**
    ```bash
-   pmset -g sched
+   cat .power-management-config
    ```
 
-2. **Verify lid wake setting:**
+2. **Check LaunchAgent status:**
    ```bash
-   pmset -g | grep lidwake
-   ```
-   Should show `lidwake 1`
-
-3. **Check system logs:**
-   ```bash
-   log show --predicate 'subsystem == "com.apple.powermanagement"' --last 1d
+   launchctl list | grep com.browse-dot-show.daily-pipeline
    ```
 
-### Pipeline Doesn't Run After Wake
-
-1. **Check LaunchAgent status:**
+3. **Check last run status:**
    ```bash
-   launchctl list | grep com.browse-dot-show.power-management
+   cat .last-pipeline-run
    ```
 
-2. **View execution logs:**
+4. **View execution logs:**
    ```bash
-   tail -f /tmp/power-management.log
+   tail -f scripts/automation-logs/daily-pipeline.log
    ```
 
-3. **Check error logs:**
-   ```bash
-   cat /tmp/power-management-error.log
-   ```
+### Pipeline Runs Too Often
+
+This shouldn't happen due to timestamp checking, but if it does:
+1. Check `.last-pipeline-run` file contents
+2. Verify system clock is correct
+3. Check for multiple LaunchAgent instances
 
 ### Manual Commands
 
 ```bash
-# Check current power settings
-pmset -g
-
-# Check scheduled events  
-pmset -g sched
+# Check LaunchAgent status
+launchctl list | grep com.browse-dot-show.daily-pipeline
 
 # Check power source and battery
 pmset -g ps
 
-# Clear all scheduled events
-sudo pmset repeat cancel
+# View recent logs
+tail -20 scripts/automation-logs/daily-pipeline.log
 
-# Test LaunchAgent manually
-launchctl start com.browse-dot-show.power-management
+# Test timestamp checking
+node -e "console.log(new Date(JSON.parse(require('fs').readFileSync('.last-pipeline-run')).lastSuccessTimestamp))"
 ```
 
 ## Uninstalling
 
-To completely remove power management:
+To completely remove daily pipeline execution:
 
 ```bash
 # Run the management script
 sudo pnpm run power:manage
 
-# Choose option 2: "Clear all power management scheduling"
+# Choose the disable option
 ```
 
 Or manually:
 
 ```bash
-# Clear pmset schedule
-sudo pmset repeat cancel
-
 # Remove LaunchAgent
-launchctl unload ~/Library/LaunchAgents/com.browse-dot-show.power-management.plist
-rm ~/Library/LaunchAgents/com.browse-dot-show.power-management.plist
+launchctl unload ~/Library/LaunchAgents/com.browse-dot-show.daily-pipeline.plist
+rm ~/Library/LaunchAgents/com.browse-dot-show.daily-pipeline.plist
 
-# Remove config file
+# Remove config files
 rm .power-management-config
+rm .last-pipeline-run
 ```
 
 ## Security Considerations
 
-- **Sudo required**: Power management requires root privileges
-- **Local execution**: All scripts run locally, no network dependencies
-- **Log files**: May contain system information, stored in `/tmp/`
+- **Sudo required**: LaunchAgent setup requires root privileges (one-time)
+- **Local execution**: All scripts run locally, no network dependencies during setup
+- **Log files**: May contain system information, stored in project directory
 - **LaunchAgent**: Runs with user privileges, not root
 
 ## Limitations
 
-- **macOS only**: Uses macOS-specific `pmset` and LaunchAgent
-- **Fixed schedule**: Currently hardcoded to 1:00 AM (future: configurable)
+- **macOS only**: Uses macOS-specific LaunchAgent
+- **Login dependency**: Only runs when you log in (not when machine boots without login)
 - **Single pipeline**: Designed for one ingestion pipeline per machine
-- **User session**: LaunchAgent requires user to be logged in
+- **User session**: Requires user login to trigger execution
+
+## Advantages Over Scheduled Wake
+
+- **Reliable**: No dependency on `pmset` scheduled wake working with lid closed
+- **Simple**: No complex power management configuration
+- **Lightweight**: Fast exit when recently run
+- **User-friendly**: Works with normal login patterns
+- **Maintainable**: Much simpler codebase and troubleshooting
 
 ## Future Enhancements
 
-- [ ] Configurable wake times
-- [ ] Multiple pipeline support  
+- [ ] Slack notifications after consecutive failures
 - [ ] Email notifications on completion/failure
-- [ ] Integration with calendar systems
-- [ ] Remote monitoring capabilities
-- [ ] Battery health considerations
+- [ ] Web dashboard for monitoring runs across multiple machines
+- [ ] Configurable retry intervals
+- [ ] Integration with calendar systems for skip days
 
 ## Support
 
 For issues or questions:
 1. Check the troubleshooting section above
-2. Review log files in `/tmp/`
+2. Review log files in `scripts/automation-logs/`
 3. Run `sudo pnpm run power:manage` to check configuration
-4. Consult `man pmset` for low-level power management details
+4. Check LaunchAgent status with `launchctl`

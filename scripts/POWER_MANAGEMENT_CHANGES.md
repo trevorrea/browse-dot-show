@@ -1,103 +1,123 @@
 # Power Management Script Changes
 
 ## Overview
-This document summarizes the changes made to `scripts/power-management.ts` based on the requirements from PR #63.
+This document summarizes the changes made to `scripts/power-management.ts` to implement a simplified login-based pipeline execution approach, replacing the complex scheduled wake system.
 
-## Changes Made
+## New Approach: Login-Based Execution
 
-### 1. Added Configurable Time Selection
-- **Before**: Fixed wake time at 1:00 AM
-- **After**: User can select from predefined times (12:00 AM - 6:00 AM) or enter a custom time
-- **Implementation**: Added `getUserSchedulePreferences()` method with time selection prompts
-- **Default**: Still defaults to 1:00 AM for backward compatibility
+### Problem with Previous Approach
+- **Scheduled wake unreliable**: `pmset` scheduled wake doesn't work reliably with lid closed
+- **Complex power management**: Required extensive `pmset` configuration and troubleshooting
+- **Over-engineered**: Too many moving parts for a simple daily pipeline execution
 
-### 2. Added Configurable Days of Week
-- **Before**: Fixed schedule for all 7 days (MTWRFSU)
-- **After**: User can select which days of the week to run the pipeline
-- **Implementation**: Added multi-select prompt for days of the week
-- **Default**: Still defaults to all 7 days for backward compatibility
+### New Solution: Run on Login
+- **Trigger**: LaunchAgent runs every time user logs in (including from lock screen)
+- **Rate limiting**: Lightweight timestamp check - exit immediately if pipeline ran successfully in last 24 hours
+- **Retry logic**: Retry if last *success* was > 24 hours ago (not just last attempt)
+- **Failure tracking**: Track consecutive failures for future alerting (TODO: Slack after 4 failures)
 
-### 3. Switched to `prompts` Package
-- **Before**: Used basic `readline` interface with number-based selections (1-6)
-- **After**: Uses the `prompts` package for user-friendly interactive prompts
-- **Features**:
-  - Dropdown selections for time and actions
-  - Multi-select for days of the week
-  - Confirmation dialogs
-  - Input validation for custom times
+## Implementation Details
 
-### 4. Changed Log Location
-- **Before**: Logs saved to `/tmp/power-management.log` and `/tmp/power-management-error.log`
-- **After**: Logs saved to `scripts/automation-logs/power-management.log` and `scripts/automation-logs/power-management-error.log`
-- **Implementation**: Updated `LOG_DIR` constant and LaunchAgent plist generation
+### 1. Timestamp-Based Rate Limiting
+- **File**: `.last-pipeline-run` in project root
+- **Content**: JSON with `lastSuccessTimestamp`, `lastAttemptTimestamp`, `consecutiveFailures`
+- **Check**: On every login, compare `lastSuccessTimestamp` to current time
+- **Exit**: If successful run within 24 hours, exit immediately (< 10ms)
 
-### 5. Enhanced Configuration Management
-- **Added**: `UserScheduleConfig` interface for storing user preferences
-- **Added**: Configuration persistence for wake time and days of the week
-- **Added**: `formatDaysForDisplay()` method for user-friendly day display
-- **Added**: `getLaunchAgentTime()` method to calculate LaunchAgent execution time
+### 2. LaunchAgent Configuration
+- **Trigger**: `RunAtLoad=true` (runs on every login)
+- **No scheduling**: Removed all time-based scheduling
+- **Lightweight**: Fast exit path when recently run
 
-### 6. Updated User Interface
-- **Replaced**: Number-based menu (1-6) with interactive prompts
-- **Added**: Schedule configuration section during initial setup
-- **Enhanced**: Configuration display to show current schedule
-- **Updated**: Help documentation to reflect new configurable options
+### 3. Retry Logic
+- **Success criteria**: Pipeline completes without errors
+- **Retry condition**: Last success > 24 hours ago
+- **Failure tracking**: Increment counter on failure, reset on success
+- **Future**: Alert to Slack after 4 consecutive failures
 
-## Technical Details
+### 4. Removed Functionality
+- **All `pmset` commands**: No more power management configuration
+- **Scheduled wake**: No more wake scheduling
+- **Time/day configuration**: No more complex scheduling UI
+- **Power state management**: No more sleep/shutdown logic
 
-### New Interfaces
+### 5. Simplified Configuration
+- **Enable/disable**: Simple on/off for daily pipeline
+- **No scheduling**: No time or day selection needed
+- **Automatic**: Runs when conditions are met (login + 24h elapsed)
+
+## Technical Implementation
+
+### New File Structure
 ```typescript
-interface UserScheduleConfig {
-  wakeTime: string;
-  daysOfWeek: string[];
-}
-```
-
-### Updated Interfaces
-```typescript
-interface PowerConfig {
-  isConfigured: boolean;
-  wakeTime: string;
-  daysOfWeek: string[]; // Added
-  hasScheduledEvents: boolean;
-  lidwake: boolean;
-  womp: boolean;
-  acwake: boolean;
-  ttyskeepawake: boolean;
+interface PipelineRunStatus {
+  lastSuccessTimestamp?: number;
+  lastAttemptTimestamp?: number;
+  consecutiveFailures: number;
 }
 ```
 
 ### New Methods
-- `getUserSchedulePreferences()`: Handles user input for time and days
-- `formatDaysForDisplay()`: Formats days for user-friendly display
-- `getLaunchAgentTime()`: Calculates LaunchAgent execution time
+- `checkLastRun()`: Fast check if pipeline ran successfully in last 24 hours
+- `recordSuccess()`: Update timestamps and reset failure counter
+- `recordFailure()`: Update timestamps and increment failure counter
+- `shouldRunPipeline()`: Determine if pipeline should run based on timestamps
 
-### Updated Methods
-- `performInitialSetup()`: Now accepts user preferences
-- `setupLaunchAgent()`: Now accepts schedule configuration
-- `generateLaunchAgentPlist()`: Now uses configurable time and log directory
-- `markAsConfigured()`: Now saves schedule configuration
-- `getCurrentConfig()`: Now reads saved schedule configuration
-- `showConfigurationMenu()`: Now uses prompts instead of number input
+### Updated LaunchAgent
+```xml
+<key>RunAtLoad</key>
+<true/>
+<!-- Removed time-based scheduling -->
+```
 
-## Backward Compatibility
-- All existing configurations will continue to work
-- Default values maintain the original behavior (1:00 AM, all days)
-- Existing LaunchAgents will continue to function
-- Configuration files are automatically migrated
+### Removed Methods
+- All `pmset` related methods
+- Schedule configuration methods
+- Power state management methods
+- Wake time calculation methods
 
-## Usage
-The script now provides a more user-friendly interface:
+## User Experience Changes
 
-1. **Time Selection**: Choose from predefined times or enter custom time
-2. **Days Selection**: Select which days of the week to run the pipeline
-3. **Interactive Menus**: Use arrow keys and space bar for selections
-4. **Confirmation Dialogs**: Clear confirmations for destructive actions
+### Before (Complex)
+1. Interactive setup with time/day selection
+2. Power management configuration
+3. Scheduled wake setup
+4. Complex troubleshooting when wake fails
+
+### After (Simple)
+1. Enable/disable daily pipeline
+2. Automatic execution on login
+3. No configuration needed
+4. Reliable operation
 
 ## Files Modified
-- `scripts/power-management.ts`: Main script with all changes
-- `scripts/automation-logs/`: Log directory (already existed)
+- `scripts/power-management.ts`: Complete rewrite for login-based approach
+- `scripts/POWER_MANAGEMENT_CHANGES.md`: Updated to reflect new approach
+- `POWER_MANAGEMENT.md`: Updated documentation for new approach
 
 ## Dependencies
-- `prompts`: Already available in `scripts/package.json`
-- `@types/prompts`: Already available in `scripts/package.json`
+- `prompts`: Still used for simple enable/disable configuration
+- Removed: All `pmset` dependencies
+
+## Backward Compatibility
+- **Breaking change**: Completely new approach
+- **Migration**: Existing `pmset` schedules should be cleared manually if desired
+- **Config files**: Old config files will be ignored
+
+## Usage
+```bash
+# Simple setup - just enable/disable
+sudo pnpm run power:manage
+
+# Pipeline runs automatically on login if:
+# - Enabled in configuration
+# - Last successful run > 24 hours ago
+# - Power conditions met (AC power or battery > 50%)
+```
+
+## Benefits
+- **Reliable**: No dependency on scheduled wake
+- **Simple**: Minimal configuration required
+- **Fast**: Quick exit when recently run
+- **Maintainable**: Much less complex code
+- **User-friendly**: Works with normal login patterns
