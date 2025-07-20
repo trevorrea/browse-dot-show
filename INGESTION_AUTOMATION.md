@@ -1,4 +1,4 @@
-# Mac Daily Pipeline Execution
+# Ingestion Automation
 
 This system automatically runs the ingestion pipeline once per day when you log into your Mac. It's designed to be lightweight, reliable, and work seamlessly with your normal usage patterns.
 
@@ -6,7 +6,7 @@ This system automatically runs the ingestion pipeline once per day when you log 
 
 ```bash
 # Run the setup (requires sudo for LaunchAgent management)
-sudo pnpm run power:manage
+sudo pnpm run ingestion:automation:manage
 ```
 
 ## What It Does
@@ -60,54 +60,45 @@ When conditions are met:
 
 ### Initial Setup
 ```bash
-sudo pnpm run power:manage
+sudo pnpm run ingestion:automation:manage
 ```
 
 On first run, you'll see:
 1. Current configuration status
-2. Simple enable/disable option for daily pipeline
+2. Simple enable/disable option for automation
 3. LaunchAgent setup
 
 ### Subsequent Runs
 ```bash
-sudo pnpm run power:manage
+sudo pnpm run ingestion:automation:manage
 ```
 
 Shows current status and options:
 1. Keep current configuration (enabled/disabled)
-2. Toggle pipeline execution on/off
+2. Toggle automation on/off
 3. Test pipeline manually
 4. View recent pipeline run history
 5. Show help information
 
 ### Manual Pipeline Test
-Test the pipeline without affecting the daily execution tracking:
+Test the pipeline without affecting the automation tracking:
 ```bash
-sudo pnpm run power:manage
+sudo pnpm run ingestion:automation:manage
 # Choose the manual test option
 ```
-
-### Pipeline Run History
-Every pipeline execution is logged with:
-- **Timestamp and duration** of each run
-- **Success/failure status** and error details
-- **Sites processed** and statistics
-- **Power source** at time of execution
-
-View recent runs through the management script menu.
 
 ## Configuration Details
 
 ### Files Created/Modified
 
 #### Project Files
-- `.power-management-config` - Simple enabled/disabled state
+- `.automation-config` - Simple enabled/disabled state
 - `.last-pipeline-run` - Timestamp tracking for rate limiting
-- `~/Library/LaunchAgents/com.browse-dot-show.daily-pipeline.plist` - LaunchAgent
+- `~/Library/LaunchAgents/com.browse-dot-show.ingestion-automation.plist` - LaunchAgent
 
 #### Log Files
-- `scripts/automation-logs/daily-pipeline.log` - Execution logs
-- `scripts/automation-logs/daily-pipeline-error.log` - Error logs
+- `scripts/automation-logs/automation.log` - Execution logs
+- `scripts/automation-logs/automation-error.log` - Error logs
 - `ingestion-pipeline-runs.md` - Pipeline execution history (git-ignored)
 
 ### Execution Logic
@@ -133,12 +124,12 @@ View recent runs through the management script menu.
 
 1. **Check if enabled:**
    ```bash
-   cat .power-management-config
+   cat .automation-config
    ```
 
 2. **Check LaunchAgent status:**
    ```bash
-   launchctl list | grep com.browse-dot-show.daily-pipeline
+   launchctl list | grep com.browse-dot-show.ingestion-automation
    ```
 
 3. **Check last run status:**
@@ -148,7 +139,7 @@ View recent runs through the management script menu.
 
 4. **View execution logs:**
    ```bash
-   tail -f scripts/automation-logs/daily-pipeline.log
+   tail -f scripts/automation-logs/automation.log
    ```
 
 ### Pipeline Runs Too Often
@@ -162,13 +153,13 @@ This shouldn't happen due to timestamp checking, but if it does:
 
 ```bash
 # Check LaunchAgent status
-launchctl list | grep com.browse-dot-show.daily-pipeline
+launchctl list | grep com.browse-dot-show.ingestion-automation
 
 # Check power source and battery
 pmset -g ps
 
 # View recent logs
-tail -20 scripts/automation-logs/daily-pipeline.log
+tail -20 scripts/automation-logs/automation.log
 
 # Test timestamp checking
 node -e "console.log(new Date(JSON.parse(require('fs').readFileSync('.last-pipeline-run')).lastSuccessTimestamp))"
@@ -176,11 +167,11 @@ node -e "console.log(new Date(JSON.parse(require('fs').readFileSync('.last-pipel
 
 ## Uninstalling
 
-To completely remove daily pipeline execution:
+To completely remove ingestion automation:
 
 ```bash
 # Run the management script
-sudo pnpm run power:manage
+sudo pnpm run ingestion:automation:manage
 
 # Choose the disable option
 ```
@@ -189,29 +180,27 @@ Or manually:
 
 ```bash
 # Remove LaunchAgent
-launchctl unload ~/Library/LaunchAgents/com.browse-dot-show.daily-pipeline.plist
-rm ~/Library/LaunchAgents/com.browse-dot-show.daily-pipeline.plist
+launchctl unload ~/Library/LaunchAgents/com.browse-dot-show.ingestion-automation.plist
+rm ~/Library/LaunchAgents/com.browse-dot-show.ingestion-automation.plist
 
 # Remove config files
-rm .power-management-config
+rm .automation-config
 rm .last-pipeline-run
 ```
 
-## Security Considerations
+## Technical Background
 
-- **Sudo required**: LaunchAgent setup requires root privileges (one-time)
-- **Local execution**: All scripts run locally, no network dependencies during setup
-- **Log files**: May contain system information, stored in project directory
-- **LaunchAgent**: Runs with user privileges, not root
+### Previous Approach: Scheduled Wake
+We initially tried using macOS's `pmset` command to schedule automatic wake events and run the pipeline at specific times. However, this approach proved unreliable, especially when the MacBook lid was closed. The scheduled wake functionality didn't work consistently across different Mac configurations and sleep states.
 
-## Limitations
+### Current Approach: Login-Based Execution
+The current system takes a much simpler and more reliable approach:
+- Triggers on user login (including unlock from lock screen)
+- Uses timestamp tracking to ensure once-per-day execution
+- Eliminates dependency on scheduled wake functionality
+- Works consistently regardless of lid position or sleep state
 
-- **macOS only**: Uses macOS-specific LaunchAgent
-- **Login dependency**: Only runs when you log in (not when machine boots without login)
-- **Single pipeline**: Designed for one ingestion pipeline per machine
-- **User session**: Requires user login to trigger execution
-
-## Advantages Over Scheduled Wake
+## Advantages
 
 - **Reliable**: No dependency on `pmset` scheduled wake working with lid closed
 - **Simple**: No complex power management configuration
@@ -232,5 +221,5 @@ rm .last-pipeline-run
 For issues or questions:
 1. Check the troubleshooting section above
 2. Review log files in `scripts/automation-logs/`
-3. Run `sudo pnpm run power:manage` to check configuration
-4. Check LaunchAgent status with `launchctl`
+3. Run `sudo pnpm run ingestion:automation:manage` to check configuration
+4. Check LaunchAgent status with `launchctl` 
