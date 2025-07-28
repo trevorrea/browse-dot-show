@@ -69,6 +69,12 @@ class TranscriptionMultiTerminalRunner extends MultiTerminalRunner {
       // Calculate duration for this terminal's files
       const terminalDuration = terminalFiles.reduce((sum, file) => sum + (file.durationMinutes || 0), 0);
       
+      // Write file list to temporary file instead of environment variable
+      // This avoids shell command line length limits with large file lists
+      const fileListPath = path.join(this.logDir, `${processId}-files.txt`);
+      const fileListContent = terminalFiles.map(f => f.filename).join('\n');
+      fs.writeFileSync(fileListPath, fileListContent, 'utf8');
+      
       configs.push({
         id: processId,
         command: 'pnpm',
@@ -86,8 +92,8 @@ class TranscriptionMultiTerminalRunner extends MultiTerminalRunner {
           SITE_ID: this.session.siteId,
           LOG_FILE: logFile,
           TERMINAL_TOTAL_MINUTES: terminalDuration.toString(),
-          // Pass specific files for this terminal to process
-          TERMINAL_FILE_LIST: terminalFiles.map(f => f.filename).join(','),
+          // Pass path to file containing the list instead of the list itself
+          TERMINAL_FILE_LIST_PATH: fileListPath,
           TERMINAL_INDEX: i.toString(),
           TOTAL_TERMINALS: this.session.terminalCount.toString()
         }
