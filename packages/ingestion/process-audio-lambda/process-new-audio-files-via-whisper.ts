@@ -807,8 +807,25 @@ export async function handler(): Promise<void> {
   log.info(`Found ${filesToProcess.length} MP3 files to process across all directories.`);
 
   // Filter files for multi-terminal processing
-  if (process.env.TERMINAL_FILE_LIST) {
-    const terminalFiles = process.env.TERMINAL_FILE_LIST.split(',').map(f => f.trim());
+  if (process.env.TERMINAL_FILE_LIST_PATH || process.env.TERMINAL_FILE_LIST) {
+    let terminalFiles: string[] = [];
+    
+    // Read from file if TERMINAL_FILE_LIST_PATH is provided (new approach)
+    if (process.env.TERMINAL_FILE_LIST_PATH) {
+      try {
+        const fileContent = require('fs').readFileSync(process.env.TERMINAL_FILE_LIST_PATH, 'utf8');
+        terminalFiles = fileContent.split('\n').map(f => f.trim()).filter(f => f.length > 0);
+        log.info(`📄 Successfully read ${terminalFiles.length} files from ${process.env.TERMINAL_FILE_LIST_PATH}`);
+      } catch (error) {
+        log.error(`Failed to read terminal file list from ${process.env.TERMINAL_FILE_LIST_PATH}: ${error}`);
+        process.exit(1);
+      }
+    }
+    // Fallback to environment variable (legacy approach)
+    else if (process.env.TERMINAL_FILE_LIST) {
+      terminalFiles = process.env.TERMINAL_FILE_LIST.split(',').map(f => f.trim());
+    }
+    
     const terminalIndex = process.env.TERMINAL_INDEX ? parseInt(process.env.TERMINAL_INDEX) : 0;
     const totalTerminals = process.env.TOTAL_TERMINALS ? parseInt(process.env.TOTAL_TERMINALS) : 1;
     
