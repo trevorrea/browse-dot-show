@@ -813,7 +813,7 @@ export async function handler(): Promise<void> {
     // Read from file if TERMINAL_FILE_LIST_PATH is provided (new approach)
     if (process.env.TERMINAL_FILE_LIST_PATH) {
       try {
-        const fileContent = require('fs').readFileSync(process.env.TERMINAL_FILE_LIST_PATH, 'utf8');
+        const fileContent = fs.readFileSync(process.env.TERMINAL_FILE_LIST_PATH, 'utf8');
         terminalFiles = fileContent.split('\n').map(f => f.trim()).filter(f => f.length > 0);
         log.info(`📄 Successfully read ${terminalFiles.length} files from ${process.env.TERMINAL_FILE_LIST_PATH}`);
       } catch (error) {
