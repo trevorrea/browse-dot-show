@@ -1,0 +1,37 @@
+{
+  "id": "hiddenbrain",
+  "domain": "hiddenbrain.browse.show",
+  "appHeader": {
+    "primaryTitle": "Hidden Brain",
+    "includeTitlePrefix": true,
+    "taglinePrimaryPodcastName": "Hidden Brain",
+    "taglinePrimaryPodcastExternalURL": "https://www.siriusxm.com",
+    "taglineSuffix": "podcast archives"
+  },
+  "socialAndMetadata": {
+    "pageTitle": "[browse.show] Hidden Brain",
+    "canonicalUrl": "https://hiddenbrain.browse.show",
+    "openGraphImagePath": "./assets/social-cards/open-graph-card-1200x630.png",
+    "metaDescription": "Search all episodes of the Hidden Brain podcast",
+    "metaTitle": "[browse.show] Hidden Brain"
+  },
+  "includedPodcasts": [
+    {
+      "id": "hidden-brain",
+      "rssFeedFile": "hiddenbrain.xml",
+      "title": "Hidden Brain",
+      "status": "active",
+      "url": "https://feeds.simplecast.com/kwWc0lhf"
+    }
+  ],
+  "whisperTranscriptionPrompt": "Hi, and welcome to Hidden Brain. This podcastexplores the unconscious patterns that drive human behavior and questions that lie at the heart of our complex and changing world. Every episode of Hidden Brain aims to help people get to know themselves a little better, to think of their inner worlds with less judgment and more curiosity. I'm your host, Shankar Vedantam. Let's jump in!",
+  "themeColor": "#3DC9E0",
+  "themeColorDark": "#1E3161",
+  "searchPlaceholderOptions": [
+    "Episode topic",
+    "Guest name",
+    "Key discussion",
+    "Recent episode"
+  ],
+  "trackingScript": "<script data-goatcounter=\"https://browse-dot-show.goatcounter.com/count\" async src=\"//gc.zgo.at/count.js\"></script>"
+}
