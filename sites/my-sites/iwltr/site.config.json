@@ -1,0 +1,51 @@
+{
+    "id": "iwltr",
+    "domain": "iwantlistenthisrubbish.com",
+    "appHeader": {
+        "primaryTitle": "Elis James and John Robins",
+        "includeTitlePrefix": false,
+        "taglinePrimaryPodcastName": "Elis James and John Robins",
+        "taglinePrimaryPodcastExternalURL": "http://www.bbc.co.uk/programmes/m0005fdz",
+        "taglineSuffix": "podcast archives"
+    },
+    "socialAndMetadata": {
+        "pageTitle": "I Want Listen This Rubbish | Elis James and John Robins",
+        "canonicalUrl": "https://iwantlistenthisrubbish.com",
+        "openGraphImagePath": "./assets/social-cards/open-graph-card-1200x630.jpg",
+        "metaDescription": "Search all episodes of the Elis James and John Robins podcast",
+        "metaTitle": "I Want Listen This Rubbish | Elis James and John Robins"
+    },
+    "includedPodcasts": [
+        {
+            "id": "elis-james-and-john-robins-bbc",
+            "rssFeedFile": "bbc.xml",
+            "title": "Elis James and John Robins on BBC Radio 5 Live",
+            "status": "active",
+            "url": "https://podcasts.files.bbci.co.uk/m0005fdz.rss"
+        },
+        {
+            "id": "how-do-you-cope",
+            "rssFeedFile": "hdc.xml",
+            "title": "How Do You Cope …with Elis and John",
+            "status": "active",
+            "url": "https://podcasts.files.bbci.co.uk/p07rq6vh.rss"
+        },
+        {
+            "id": "elis-and-john-podcast-radiox",
+            "rssFeedFile": "radiox.xml",
+            "title": "Elis James and John Robins on Radio X",
+            "status": "active",
+            "url": "https://feeds.captivate.fm/elis-james-and-john-robins/"
+        }
+    ],
+    "whisperTranscriptionPrompt": "Hi, welcome to Elis James and John Robins. Let's jump in!",
+    "themeColor": "#fdf100",
+    "themeColorDark": "#136cba",
+    "searchPlaceholderOptions": [
+        "Episode topic",
+        "Guest name",
+        "Key discussion",
+        "Recent episode"
+    ],
+    "trackingScript": "<script data-goatcounter=\"https://browse-dot-show.goatcounter.com/count\" async src=\"//gc.zgo.at/count.js\"></script>"
+}
