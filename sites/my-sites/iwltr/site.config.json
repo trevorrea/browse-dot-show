@@ -3,7 +3,8 @@
     "domain": "iwantlistenthisrubbish.com",
     "appHeader": {
         "primaryTitle": "Elis James and John Robins",
-        "includeTitlePrefix": false,
+        "includeTitlePrefix": true,
+        "extraHeightForLongTitle": true,
         "taglinePrimaryPodcastName": "Elis James and John Robins",
         "taglinePrimaryPodcastExternalURL": "http://www.bbc.co.uk/programmes/m0005fdz",
         "taglineSuffix": "podcast archives"
