@@ -1,0 +1,28 @@
+{
+    "correctionsToApply": [
+        {
+            "misspellings": [
+                "Betty"
+            ],
+            "correctedSpelling": "Beti"
+        },
+        {
+            "misspellings": [
+                "Izzy"
+            ],
+            "correctedSpelling": "Isy"
+        },
+        {
+            "misspellings": [
+                "Ellis"
+            ],
+            "correctedSpelling": "Elis"
+        },
+        {
+            "misspellings": [
+                "Robbins"
+            ],
+            "correctedSpelling": "Robins"
+        }
+    ]
+}
