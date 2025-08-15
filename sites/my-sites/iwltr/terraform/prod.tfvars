@@ -1,10 +1,15 @@
 aws_region     = "us-east-1"
-aws_profile    = "iwltr-deploy"
+aws_profile    = "iwltr"
 site_id        = "iwltr"
 s3_bucket_name = "browse-dot-show"
 
 # Automation role configuration  
-create_automation_role = true  # Role already exists from claretandblue in same account
+automation_account_id = 184601568981
+create_automation_role = true
+deployed_sites = ["iwltr"]
+site_account_ids = {
+  "iwltr" = "184601568981"
+}
 
 # Custom domain configuration
 custom_domain_name = "iwantlistenthisrubbish.com"

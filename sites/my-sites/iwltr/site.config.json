@@ -43,10 +43,9 @@
     "themeColor": "#fdf100",
     "themeColorDark": "#136cba",
     "searchPlaceholderOptions": [
-        "Episode topic",
-        "Guest name",
-        "Key discussion",
-        "Recent episode"
+        "absolute coin",
+        "connect",
+        "todgers"
     ],
     "trackingScript": "<script data-goatcounter=\"https://browse-dot-show.goatcounter.com/count\" async src=\"//gc.zgo.at/count.js\"></script>"
 }
