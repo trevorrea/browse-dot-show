@@ -7,7 +7,8 @@
         "extraHeightForLongTitle": true,
         "taglinePrimaryPodcastName": "Elis James and John Robins",
         "taglinePrimaryPodcastExternalURL": "http://www.bbc.co.uk/programmes/m0005fdz",
-        "taglineSuffix": "podcast archives"
+        "taglineSuffix": "podcast archives",
+        "includeAIUseDisclosure": true
     },
     "socialAndMetadata": {
         "pageTitle": "I Want Listen This Rubbish | Elis James and John Robins",
@@ -47,6 +48,7 @@
         "connect",
         "good radio bell",
         "todgers",
+        "Queen",
         "undue prominence"
     ],
     "trackingScript": "<script data-goatcounter=\"https://browse-dot-show.goatcounter.com/count\" async src=\"//gc.zgo.at/count.js\"></script>"

@@ -26,7 +26,7 @@ log_level = "info"
 ## OPTIONAL
 
 ## Search lambda configuration
-search_lambda_memory_size = 10240  # Adjust based on your podcast size / max observed memory usage
+search_lambda_memory_size = 10240 # Adjust based on your podcast size / max observed memory usage
 
 ## SRT indexing Lambda configuration
 # srt_indexing_lambda_memory_size = 3008 # Adjust based on your podcast size / max observed memory usage
