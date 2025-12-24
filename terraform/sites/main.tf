@@ -82,7 +82,10 @@ resource "aws_lambda_layer_version" "ffmpeg_layer" {
   compatible_runtimes      = ["nodejs20.x"]
   compatible_architectures = ["arm64"]
   
-  description = "FFmpeg static binaries for audio/video processing - ${var.site_id}"
+  description = "FFmpeg static binaries for audio/video processing - ${var.site_id}" 
+  lifecycle {
+    ignore_changes = [filename]
+  }
 }
 
 # SSL Certificate for custom domain (must be in us-east-1 for CloudFront)

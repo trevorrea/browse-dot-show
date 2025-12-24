@@ -4,9 +4,9 @@ import { execCommandOrThrow } from '../utils/shell-exec.js';
 import { printInfo, printError, printSuccess, logHeader } from '../utils/logging.js';
 import { validateAwsEnvironment } from '../utils/aws-utils.js';
 
-const STATE_BUCKET_NAME = 'browse-dot-show-automation-terraform-state';
+const STATE_BUCKET_NAME = 'iwltr-browse-dot-show-automation-terraform-state';
 const AWS_REGION = 'us-east-1';
-const AUTOMATION_PROFILE = 'browse.show-0_admin-permissions-297202224084';
+const AUTOMATION_PROFILE = 'iwltr';
 
 async function validateAutomationAwsEnvironment(): Promise<void> {
   printInfo(`Using AWS profile: ${AUTOMATION_PROFILE}`);
@@ -77,20 +77,13 @@ async function createStateBucket(): Promise<void> {
 
   // Enable encryption
   printInfo('Enabling encryption on state bucket...');
-  const encryptionConfig = {
-    Rules: [{
-      ApplyServerSideEncryptionByDefault: {
-        SSEAlgorithm: "AES256"
-      }
-    }]
-  };
   await execCommandOrThrow('aws', [
     's3api',
     'put-bucket-encryption',
     '--bucket',
     STATE_BUCKET_NAME,
     '--server-side-encryption-configuration',
-    JSON.stringify(encryptionConfig),
+    '\'{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}\'',
     '--profile',
     AUTOMATION_PROFILE
   ]);

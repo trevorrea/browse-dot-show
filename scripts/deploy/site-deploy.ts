@@ -413,8 +413,8 @@ async function updateSiteAccountMappingsWithOutputs(siteId: string): Promise<voi
 
 async function runTerraformDeployment(siteId: string, skipPrompts: boolean = false): Promise<boolean> {
   // Relative paths from terraform/sites directory
-  const BACKEND_CONFIG_FILE = `../../sites/origin-sites/${siteId}/terraform/backend.tfbackend`;
-  const TFVARS_FILE = `../../sites/origin-sites/${siteId}/terraform/prod.tfvars`;
+  const BACKEND_CONFIG_FILE = `../../sites/my-sites/${siteId}/terraform/backend.tfbackend`;
+  const TFVARS_FILE = `../../sites/my-sites/${siteId}/terraform/prod.tfvars`;
   const TF_DIR = 'terraform/sites';
 
   printInfo(`Navigating to Terraform directory: ${TF_DIR}`);
@@ -430,7 +430,9 @@ async function runTerraformDeployment(siteId: string, skipPrompts: boolean = fal
 
     // Initialize Terraform with site-specific backend config
     printInfo(`Initializing Terraform with backend config: ${BACKEND_CONFIG_FILE}`);
-    await execCommandOrThrow('terraform', ['init', '-backend-config', BACKEND_CONFIG_FILE, '-reconfigure']);
+    const initResult = await execCommand('terraform', ['init', '-backend-config', BACKEND_CONFIG_FILE, '-reconfigure'], {
+      timeout: 600000 // 10 minutes timeout for terraform init
+    });
 
     // Validate Terraform configuration
     printInfo('Validating Terraform configuration...');

@@ -7,7 +7,7 @@
         "extraHeightForLongTitle": true,
         "taglinePrimaryPodcastName": "Elis James and John Robins",
         "taglinePrimaryPodcastExternalURL": "http://www.bbc.co.uk/programmes/m0005fdz",
-        "taglineSuffix": "podcast archives",
+        "taglineSuffix": "BBC, Radio X and HDYC podcast archives",
         "includeAIUseDisclosure": true
     },
     "socialAndMetadata": {
@@ -44,9 +44,10 @@
     "themeColor": "#fdf100",
     "themeColorDark": "#136cba",
     "searchPlaceholderOptions": [
-        "absolute coin",
-        "connect",
+        "Billy Balance",
+        "good egg",
         "good radio bell",
+        "lovely stuff",
         "todgers",
         "Queen",
         "undue prominence"
