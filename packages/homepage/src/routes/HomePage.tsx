@@ -172,7 +172,8 @@ function HomePage() {
             main: '[browse.show]'
           },
           tagline: {
-            text: 'transcribe & search any podcast'
+            text: 'transcribe & search any podcast',
+            suffix: 'Find exact moments in your favorite podcasts'
           },
           rightImageAndThemeToggle: {
             themeToggle: <ThemeToggle />,

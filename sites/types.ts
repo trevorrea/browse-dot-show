@@ -72,6 +72,12 @@ export interface AppHeader {
     taglineSuffix: string;
 
     /**
+     * optional second line of the tagline that appears in the app header
+     * @example `Find exact moments in your favorite podcasts`
+     */
+    taglineSecondLine?: string;
+
+    /**
      * whether to add extra height to the app header to accommodate a long title
      */
     extraHeightForLongTitle: boolean;

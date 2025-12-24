@@ -75,10 +75,6 @@ function InfoDrawer({ includeAIUseDisclosure }: { includeAIUseDisclosure: boolea
         <p>Powered by <strong><a href="https://browse.show" onClick={handleBrowseShowClick} className="underline" target="_blank">browse.show</a></strong> - transcribe & search any podcast.</p>
         <p>Open source, fully customizable, and free to use.</p>
         <br />
-        <p>Want a new podcast to be searchable? Have a feature request or a bug report? Let me know!</p>
-        <Button variant="default" size="lg" className="mt-4 w-full" onClick={handleContactClick}>
-          browse.show/contact <ArrowRightIcon className="size-4" />
-        </Button>
 
         {includeAIUseDisclosure && (
           <Collapsible className="mt-6">
@@ -185,6 +181,7 @@ export default function AppHeader({ scrolled }: AppHeaderProps) {
       linkUrl: appHeader.taglinePrimaryPodcastExternalURL,
       suffix: appHeader.taglineSuffix
     },
+    taglineSecondLine: appHeader.taglineSecondLine,
     actions: (
       <>
         <InfoDrawer includeAIUseDisclosure={appHeader.includeAIUseDisclosure} />

@@ -14,6 +14,9 @@ export interface AppHeaderConfig {
     suffix?: string;
   };
 
+  // Optional second line for the tagline
+  taglineSecondLine?: string;
+
   // Custom action buttons/content in header
   actions?: React.ReactNode;
 
@@ -124,6 +127,13 @@ export default function AppHeader({ scrolled, config }: AppHeaderProps) {
                   </a>
                 )}
                 {config.tagline.suffix && <span> {config.tagline.suffix}</span>}
+              </p>
+            )}
+
+            {/* Second line of tagline */}
+            {config.taglineSecondLine && (
+              <p className={`text-[12px] italic transition-all duration-200 mt-4 ${scrolled ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'}`}>
+                {config.taglineSecondLine}
               </p>
             )}
           </div>
